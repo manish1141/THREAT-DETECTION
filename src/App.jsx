@@ -7,6 +7,7 @@ import { authService } from './services/authService';
 import { clientDeviceDetector } from './services/clientDeviceDetector';
 import { securityService } from './services/securityService';
 import { appRiskService } from './services/appRiskService';
+import { clientPackageInspector } from './services/clientPackageInspector';
 import { threatService } from './services/threatService';
 import { notificationService } from './services/notificationService';
 
@@ -57,7 +58,10 @@ export function App() {
   const [settings, setSettings] = useState(() => storageService.getSettings());
   const [dashboardData, setDashboardData] = useState(() => securityService.getDashboardState());
   const [notifications, setNotifications] = useState(() => notificationService.getNotifications());
-  const [apps, setApps] = useState(() => appRiskService.getAnalyzedApps());
+  const [apps, setApps] = useState(() => {
+    const custom = clientPackageInspector.getAuditedPackages();
+    return custom.length > 0 ? custom : appRiskService.getAnalyzedApps();
+  });
   const [threats, setThreats] = useState(() => threatService.getThreats());
 
   // Deep Scan State
@@ -112,7 +116,8 @@ export function App() {
   const refreshAllState = () => {
     const updatedDashboard = securityService.getDashboardState();
     setDashboardData(updatedDashboard);
-    setApps(appRiskService.getAnalyzedApps());
+    const custom = clientPackageInspector.getAuditedPackages();
+    setApps(custom.length > 0 ? custom : appRiskService.getAnalyzedApps());
     setThreats(threatService.getThreats());
     setNotifications(notificationService.getNotifications());
   };
