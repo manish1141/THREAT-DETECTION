@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileCheck2, 
   Upload, 
@@ -11,9 +11,14 @@ import {
   CheckCircle2, 
   Info,
   Copy,
-  Check
+  Check,
+  FolderSync,
+  Radio,
+  StopCircle,
+  FolderOpen
 } from 'lucide-react';
 import { fileScannerService } from '../services/fileScannerService';
+import { liveFileSentinel } from '../services/liveFileSentinel';
 
 export function FileScannerPage() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -22,11 +27,28 @@ export function FileScannerPage() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Sentinel Folder Watcher State
+  const [isWatchingFolder, setIsWatchingFolder] = useState(liveFileSentinel.isWatching);
+  const [watchedFolderName, setWatchedFolderName] = useState(
+    liveFileSentinel.directoryHandle?.name || ''
+  );
+  const [folderWatchError, setFolderWatchError] = useState('');
+
+  useEffect(() => {
+    setIsWatchingFolder(liveFileSentinel.isWatching);
+    if (liveFileSentinel.directoryHandle) {
+      setWatchedFolderName(liveFileSentinel.directoryHandle.name);
+    }
+  }, []);
+
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
       setResult(null);
       setError('');
+      // Also pass to sentinel for real-time check
+      liveFileSentinel.processNewFile(file);
     }
   };
 
@@ -47,6 +69,24 @@ export function FileScannerPage() {
     } finally {
       setIsScanning(false);
     }
+  };
+
+  // Directory Watch activation
+  const handleStartWatch = async () => {
+    setFolderWatchError('');
+    try {
+      const res = await liveFileSentinel.activateDirectoryWatch();
+      setIsWatchingFolder(true);
+      setWatchedFolderName(res.directoryName);
+    } catch (err) {
+      setFolderWatchError(err.message || 'Failed to start folder surveillance.');
+    }
+  };
+
+  const handleStopWatch = () => {
+    liveFileSentinel.stopWatch();
+    setIsWatchingFolder(false);
+    setWatchedFolderName('');
   };
 
   const copyHash = (hash) => {
@@ -70,7 +110,67 @@ export function FileScannerPage() {
 
   return (
     <div className="space-y-6 animate-fadeIn pb-16 lg:pb-8">
-      {/* Header */}
+      {/* Real-time File Surveillance Sentinel Banner */}
+      <div className={`p-6 rounded-3xl border transition-all ${
+        isWatchingFolder 
+          ? 'bg-gradient-to-r from-red-950/40 via-slate-900 to-black border-red-500/50 shadow-[0_0_25px_rgba(239,68,68,0.2)]'
+          : 'bg-gradient-to-r from-cyan-950/30 via-slate-900 to-black border-cyan-500/30'
+      }`}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider ${
+                isWatchingFolder 
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse'
+                  : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
+              }`}>
+                <Radio className="w-3.5 h-3.5" />
+                {isWatchingFolder ? 'LIVE SENTINEL ACTIVE' : 'LIVE SENTINEL STANDBY'}
+              </span>
+            </div>
+            <h3 className="text-xl font-black text-white flex items-center gap-2">
+              <span>Real-Time Downloads & System File Watcher</span>
+            </h3>
+            <p className="text-xs text-slate-300 max-w-xl">
+              Continuous on-device surveillance: When any new file drops or arrives in your monitored folder, Threat Guard immediately calculates its hash, verifies heuristic indicators, and triggers an <span className="text-red-400 font-bold">urgent popup alarm</span> if risky.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            {!isWatchingFolder ? (
+              <button
+                onClick={handleStartWatch}
+                className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-cyan-950/50 transition active:scale-98"
+              >
+                <FolderOpen className="w-4 h-4" />
+                <span>Select Folder to Monitor (e.g. Downloads)</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono text-emerald-400 px-3 py-1.5 rounded-lg bg-emerald-950/50 border border-emerald-800">
+                  📁 Watching: <b className="text-white">{watchedFolderName}</b>
+                </span>
+                <button
+                  onClick={handleStopWatch}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 text-xs font-bold flex items-center gap-1.5 transition"
+                >
+                  <StopCircle className="w-4 h-4" />
+                  <span>Stop</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {folderWatchError && (
+          <div className="mt-3 p-3 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{folderWatchError}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Manual File Inspector Header */}
       <div className="glass-panel p-6 rounded-3xl border-cyan-500/20">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">
@@ -132,7 +232,7 @@ export function FileScannerPage() {
         )}
       </div>
 
-      {/* Privacy Notice Banner (Requirement #8 & #17) */}
+      {/* Privacy Notice Banner */}
       <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-800/40 text-xs text-cyan-200 flex items-start gap-3">
         <Info className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
         <div>
@@ -145,7 +245,7 @@ export function FileScannerPage() {
         </div>
       </div>
 
-      {/* Scan Results Card (Requirement #8) */}
+      {/* Scan Results Card */}
       {result && (
         <div className="glass-panel-glow p-6 rounded-2xl border-cyan-500/30 space-y-5 animate-fadeIn">
           {/* Header */}
@@ -231,3 +331,4 @@ export function FileScannerPage() {
     </div>
   );
 }
+export default FileScannerPage;

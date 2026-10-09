@@ -1,7 +1,9 @@
 import React from 'react';
 import { 
   ShieldAlert, 
+  Activity, 
   Smartphone, 
+  Lock, 
   Globe2, 
   FileCheck2, 
   Layers, 
@@ -9,10 +11,9 @@ import {
   BookOpen, 
   Settings, 
   FileText, 
-  Activity, 
-  Sliders,
-  CheckCircle2,
-  Lock
+  MessageSquare,
+  HelpCircle,
+  Users
 } from 'lucide-react';
 
 export const NAV_ITEMS = [
@@ -21,12 +22,13 @@ export const NAV_ITEMS = [
   { id: 'apps', label: 'App Risk Analyzer', icon: Smartphone },
   { id: 'permissions', label: 'Permission Auditor', icon: Lock },
   { id: 'urlScanner', label: 'URL / Phishing Guard', icon: Globe2 },
+  { id: 'msgScanner', label: 'Message / SMS Scanner', icon: MessageSquare },
   { id: 'fileScanner', label: 'File Hash Inspector', icon: FileCheck2 },
   { id: 'threatCenter', label: 'Threat Incident Center', icon: Layers },
   { id: 'history', label: 'Scan History & Trends', icon: History },
   { id: 'report', label: 'Executive Security Report', icon: FileText },
   { id: 'education', label: 'Cyber Safety Academy', icon: BookOpen },
-  { id: 'settings', label: 'Device Settings & Privacy', icon: Settings },
+  { id: 'settings', label: 'Settings & Privacy Controls', icon: Settings },
 ];
 
 export function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
@@ -83,11 +85,10 @@ export function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
         <div className="pt-4 border-t border-slate-800/80">
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px]">
             <div className="flex items-center gap-1.5 text-cyan-400 font-bold mb-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Local-First Guarantee</span>
+              <span>Client-Isolated Protection</span>
             </div>
             <p className="text-slate-400 text-[10px] leading-tight">
-              Calculated on-device. Zero personal telemetry transmitted without user authorization.
+              Calculated on your device. Zero developer or server hardware details are displayed.
             </p>
           </div>
         </div>

@@ -10,6 +10,7 @@ import { appRiskService } from './services/appRiskService';
 import { clientPackageInspector } from './services/clientPackageInspector';
 import { threatService } from './services/threatService';
 import { notificationService } from './services/notificationService';
+import { liveFileSentinel } from './services/liveFileSentinel';
 
 // Components
 import { TopNav } from './components/TopNav';
@@ -19,6 +20,7 @@ import { NotificationDrawer } from './components/NotificationDrawer';
 import { AuthModal } from './components/AuthModal';
 import { ConsentModal } from './components/ConsentModal';
 import { ThreatDetailsModal } from './components/ThreatDetailsModal';
+import { UrgentThreatModal } from './components/UrgentThreatModal';
 
 // Pages
 import { DashboardPage } from './pages/DashboardPage';
@@ -39,6 +41,7 @@ export function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [selectedThreatModal, setSelectedThreatModal] = useState(null);
+  const [activeUrgentThreat, setActiveUrgentThreat] = useState(null);
 
   // Authentication & Session
   const [session, setSession] = useState(() => authService.getCurrentSession());
@@ -68,10 +71,50 @@ export function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState({ step: 0, text: '', progress: 0 });
 
-  // Update client device detection on mount
+  // Update client device detection on mount & subscribe to Live File Sentinel
   useEffect(() => {
     const info = clientDeviceDetector.getBrowserDeviceInfo();
     setDeviceInfo(info);
+
+    // Subscribe to Sentinel for immediate threat popup alerts
+    const unsubscribe = liveFileSentinel.onThreatDetected((threat) => {
+      setActiveUrgentThreat(threat);
+      // Auto-add threat to threat center and refresh
+      threatService.addThreat({
+        title: `Monitored File Threat: ${threat.fileName}`,
+        severity: threat.riskLevel || 'HIGH',
+        category: 'FILE_MALWARE',
+        description: `Active Sentinel intercepted risky file with score ${threat.riskScore}/100. Checksum: ${threat.sha256?.substring(0, 16)}...`,
+        evidence: threat.reasons?.join('; ') || 'Heuristic rules exceeded danger thresholds.',
+        remediation: threat.recommendations?.[0] || 'Delete file immediately and quarantine storage.'
+      });
+      refreshAllState();
+    });
+
+    // Global drag-and-drop listener: Any file dropped onto the browser window is immediately inspected
+    const handleDragOver = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleDrop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          liveFileSentinel.processNewFile(e.dataTransfer.files[i]);
+        }
+      }
+    };
+
+    window.addEventListener('dragover', handleDragOver);
+    window.addEventListener('drop', handleDrop);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('dragover', handleDragOver);
+      window.removeEventListener('drop', handleDrop);
+    };
   }, []);
 
   // Sync state when session changes
@@ -326,6 +369,18 @@ export function App() {
           threat={selectedThreatModal}
           onClose={() => setSelectedThreatModal(null)}
           onStatusChange={handleStatusChange}
+        />
+      )}
+
+      {/* Urgent Risky File Detection Alert Modal */}
+      {activeUrgentThreat && (
+        <UrgentThreatModal
+          threat={activeUrgentThreat}
+          onClose={() => setActiveUrgentThreat(null)}
+          onQuarantine={() => {
+            setActiveUrgentThreat(null);
+            setCurrentTab('threatCenter');
+          }}
         />
       )}
     </div>
