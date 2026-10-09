@@ -1,0 +1,19 @@
+{
+  "name": "threatguard-backend",
+  "version": "1.0.0",
+  "description": "On-Device Threat Guard - Local Hardware & OS Telemetry Daemon",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "cybersecurity",
+    "telemetry",
+    "local-first",
+    "threat-guard"
+  ],
+  "author": "BCA Cybersecurity Team",
+  "license": "ISC"
+}
