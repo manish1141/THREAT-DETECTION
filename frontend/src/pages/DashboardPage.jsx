@@ -11,25 +11,28 @@ import {
   Globe2, 
   CheckCircle2, 
   Activity, 
-  ArrowUpRight,
-  ChevronRight,
-  Info,
-  Laptop,
-  Cpu,
-  HardDrive
+  ArrowUpRight, 
+  ChevronRight, 
+  Info, 
+  Laptop, 
+  Cpu, 
+  HardDrive,
+  Users
 } from 'lucide-react';
 import { SecurityScoreCircle } from '../components/SecurityScoreCircle';
 import { ThreatCard } from '../components/ThreatCard';
+import { TeamCreditsCard } from '../components/TeamCreditsCard';
 
 export function DashboardPage({ 
   dashboardData, 
   onRunScan, 
   isScanning, 
   scanProgress, 
-  onNavigate,
-  onInspectThreat,
+  onNavigate, 
+  onInspectThreat, 
   onResolveThreat,
-  realHostData
+  deviceInfo,
+  currentUser
 }) {
   const { 
     score, 
@@ -47,75 +50,48 @@ export function DashboardPage({
   } = dashboardData;
 
   const activeThreats = (threats || []).filter(t => t.status === 'ACTIVE');
-  const host = realHostData?.host;
 
   return (
     <div className="space-y-6 animate-fadeIn pb-16 lg:pb-8">
-      {/* Real Hardware Node Telemetry Banner */}
-      {host && (
-        <div className="glass-panel p-4.5 rounded-2xl border-emerald-500/30 bg-emerald-950/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              <Laptop className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white font-mono">{host.hostname}</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  REAL LAPTOP HARDWARE CONNECTED
-                </span>
-              </div>
-              <div className="text-xs text-slate-400 mt-0.5 flex flex-wrap items-center gap-2 font-mono">
-                <span>OS: {host.platform.toUpperCase()} ({host.release})</span>
-                <span>•</span>
-                <span>CPU: {host.cpusCount} Logical Cores</span>
-                <span>•</span>
-                <span>User: {host.username}</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-4 text-xs font-mono">
-            <div className="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
-              <span className="text-slate-400 block text-[10px]">RAM USAGE</span>
-              <span className="text-cyan-400 font-bold">{host.memoryUsagePct}% ({host.freeMemoryGb} Free / {host.totalMemoryGb})</span>
+      {/* Genuine Client Device Telemetry Banner (Requirement #1 & #4) */}
+      <div className="glass-panel p-5 rounded-2xl border-cyan-500/20 bg-slate-900/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shrink-0">
+            <Laptop className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white font-mono">
+                {deviceInfo?.platformName || 'Current Client Device'}
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800">
+                {deviceInfo?.sourceLabel || 'Client Browser Environment'}
+              </span>
             </div>
-            <div className="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
-              <span className="text-slate-400 block text-[10px]">UPTIME</span>
-              <span className="text-emerald-400 font-bold">{host.uptimeHours} hrs</span>
+            <div className="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-2 font-mono">
+              <span>Form Factor: {deviceInfo?.deviceType}</span>
+              <span>•</span>
+              <span>CPU: {deviceInfo?.cpuCores}</span>
+              <span>•</span>
+              <span>RAM: {deviceInfo?.memoryGb}</span>
+              <span>•</span>
+              <span>Display: {deviceInfo?.screenResolution}</span>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Top Banner Alert / Scanning Modal Overlay */}
-      {isScanning && (
-        <div className="glass-panel-glow border-cyan-500/40 p-5 rounded-2xl relative overflow-hidden animate-pulse">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
-              <div>
-                <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                  RUNNING REAL-TIME HEURISTIC HARDWARE SCAN
-                </h4>
-                <p className="text-xs text-cyan-300 font-mono mt-0.5">
-                  {scanProgress?.text || 'Auditing active laptop processes and registry packages...'}
-                </p>
-              </div>
-            </div>
-            <span className="text-lg font-mono font-black text-cyan-400">
-              {scanProgress?.progress || 0}%
-            </span>
+        <div className="flex items-center gap-3 text-xs font-mono shrink-0">
+          <div className="bg-slate-950/80 px-3 py-2 rounded-xl border border-slate-800">
+            <span className="text-slate-500 block text-[10px]">NETWORK STATUS</span>
+            <span className="text-emerald-400 font-bold">{deviceInfo?.networkType}</span>
           </div>
-          {/* Progress bar */}
-          <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-3">
-            <div 
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full transition-all duration-300"
-              style={{ width: `${scanProgress?.progress || 0}%` }}
-            />
+          <div className="bg-slate-950/80 px-3 py-2 rounded-xl border border-slate-800">
+            <span className="text-slate-500 block text-[10px]">WEB CRYPTO ENGINE</span>
+            <span className="text-cyan-400 font-bold">{deviceInfo?.hasWebCrypto ? 'Hardware Accelerated' : 'Software Fallback'}</span>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Hero Security Overview Card */}
       <div className="glass-panel rounded-3xl p-6 lg:p-8 relative overflow-hidden border border-cyan-500/20">
@@ -143,7 +119,7 @@ export function DashboardPage({
               </div>
 
               <p className="text-xs text-slate-400 max-w-sm">
-                Evaluated against real laptop processes, Windows registry software, network sockets, and cryptographic signatures.
+                Evaluated against current browser environment, cryptographic hash checks, URL vectors, and authorized inputs.
               </p>
 
               <div className="text-[11px] text-slate-500 font-mono">
@@ -160,14 +136,14 @@ export function DashboardPage({
               className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-sm tracking-wider uppercase flex items-center justify-center gap-3 transition shadow-xl ${
                 isScanning 
                   ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-slate-950 shadow-emerald-950/60 cursor-pointer active:scale-95'
+                  : 'bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-cyan-950/60 cursor-pointer active:scale-95'
               }`}
             >
               <Play className={`w-5 h-5 fill-current ${isScanning ? 'animate-spin' : ''}`} />
-              <span>RUN REAL-TIME SECURITY CHECK</span>
+              <span>RUN FULL SECURITY CHECK</span>
             </button>
-            <span className="text-[11px] text-slate-400 font-mono">
-              Live on-device audit • Zero cloud data exfiltration
+            <span className="text-[11px] text-slate-500">
+              Zero cloud telemetry • 100% On-Device Analysis
             </span>
           </div>
         </div>
@@ -209,7 +185,7 @@ export function DashboardPage({
             {privacyRisksCount}
           </div>
           <span className="text-[11px] text-slate-500 block mt-1">
-            Privileged background hooks
+            Permission combinations flagged
           </span>
         </div>
 
@@ -219,16 +195,16 @@ export function DashboardPage({
           className="glass-panel p-4.5 rounded-2xl border-slate-800 hover:border-cyan-500/40 transition cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Sockets</span>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Network</span>
             <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400">
               <Wifi className="w-4 h-4" />
             </div>
           </div>
           <div className="text-lg font-black text-emerald-400 group-hover:text-cyan-300 transition truncate">
-            {realHostData?.networkSockets?.length ? `${realHostData.networkSockets.length} Ports` : 'Secure (15)'}
+            {deviceInfo?.networkOnline ? 'Online' : 'Offline'}
           </div>
           <span className="text-[11px] text-slate-500 block mt-1 truncate">
-            Listening TCP Services
+            {deviceInfo?.networkType || 'TLS Protected'}
           </span>
         </div>
 
@@ -238,16 +214,16 @@ export function DashboardPage({
           className="glass-panel p-4.5 rounded-2xl border-slate-800 hover:border-blue-500/40 transition cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Real Host Apps</span>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Audited Packages</span>
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
-              <Laptop className="w-4 h-4" />
+              <Smartphone className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-black text-white group-hover:text-blue-400 transition">
             {totalAppsAnalyzed}
           </div>
           <span className="text-[11px] text-slate-500 block mt-1">
-            Windows Registry Packages
+            Heuristically evaluated
           </span>
         </div>
       </div>
@@ -259,7 +235,7 @@ export function DashboardPage({
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
               Security Score Vector Breakdown
             </h3>
-            <p className="text-xs text-slate-400">Weighted heuristic evaluation across live laptop telemetry</p>
+            <p className="text-xs text-slate-400">Weighted heuristic evaluation across primary vectors</p>
           </div>
           <button
             onClick={() => onNavigate('report')}
@@ -271,11 +247,11 @@ export function DashboardPage({
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {[
-            { label: 'Applications', val: breakdown?.applications || 90, desc: 'Windows registry packages' },
-            { label: 'Permissions', val: breakdown?.permissions || 82, desc: 'Active daemon privilege scopes' },
-            { label: 'Network', val: breakdown?.network || 92, desc: 'Listening sockets & TLS' },
-            { label: 'Privacy', val: breakdown?.privacy || 86, desc: 'Local memory & telemetry hygiene' },
-            { label: 'Threat Protection', val: breakdown?.threatProtection || 95, desc: 'IOC & Known Malicious Hashes' }
+            { label: 'Applications', val: breakdown?.applications || 90, desc: 'Package hygiene & signatures' },
+            { label: 'Permissions', val: breakdown?.permissions || 78, desc: 'Access scope & combinations' },
+            { label: 'Network', val: breakdown?.network || 92, desc: 'TLS & wireless transport' },
+            { label: 'Privacy', val: breakdown?.privacy || 84, desc: 'Background exfiltration risks' },
+            { label: 'Threat Protection', val: breakdown?.threatProtection || 95, desc: 'Known signatures & hashes' }
           ].map((item, idx) => (
             <div key={idx} className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-2">
               <div className="flex items-center justify-between text-xs">
@@ -300,7 +276,7 @@ export function DashboardPage({
         </div>
       </div>
 
-      {/* Active Incident Feed */}
+      {/* Immediate Attention Items */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -341,6 +317,10 @@ export function DashboardPage({
           </div>
         )}
       </div>
+
+      {/* Team Credits Section (Requirement #7) */}
+      <TeamCreditsCard />
+
     </div>
   );
 }
