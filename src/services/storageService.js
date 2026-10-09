@@ -1,20 +1,14 @@
 /**
- * ON-DEVICE THREAT GUARD - STORAGE SERVICE
- * Local-First IndexedDB and LocalStorage wrapper for zero-cloud persistence.
- * Safe fallback for Node / Vitest test environments.
+ * ON-DEVICE THREAT GUARD - STORAGE SERVICE (PER-USER ISOLATED)
+ * 
+ * Guarantees that every user's scans, settings, profile, and threats
+ * are strictly isolated and keyed by their unique account ID (`userId`).
+ * 
+ * Never mixes developer laptop data with visitor data.
  */
 
-const STORAGE_KEYS = {
-  PROFILE: 'threatguard_profile',
-  SETTINGS: 'threatguard_settings',
-  SCAN_HISTORY: 'threatguard_scan_history',
-  THREAT_EVENTS: 'threatguard_threat_events',
-  CUSTOM_APPS: 'threatguard_custom_apps',
-  NOTIFICATIONS: 'threatguard_notifications',
-  IS_INITIALIZED: 'threatguard_initialized_v1',
-};
+import { authService } from './authService';
 
-// In-memory fallback if localStorage is undefined (e.g., in node runtime/testing)
 const memoryStore = new Map();
 
 const getStorage = () => {
@@ -30,122 +24,151 @@ const getStorage = () => {
 };
 
 export const storageService = {
-  // Get item with default fallback
-  get(key, defaultValue = null) {
+  // Generates per-user isolated storage key
+  getUserKey(baseKey) {
+    const session = authService.getCurrentSession();
+    const userId = session?.userId || 'guest_session';
+    return `tg_${userId}_${baseKey}`;
+  },
+
+  get(baseKey, defaultValue = null) {
     try {
       const storage = getStorage();
-      const data = storage.getItem(key);
+      const scopedKey = this.getUserKey(baseKey);
+      const data = storage.getItem(scopedKey);
       return data ? JSON.parse(data) : defaultValue;
     } catch (err) {
-      console.error(`Storage error reading ${key}:`, err);
+      console.error(`Storage error reading ${baseKey}:`, err);
       return defaultValue;
     }
   },
 
-  // Save item
-  set(key, value) {
+  set(baseKey, value) {
     try {
       const storage = getStorage();
-      storage.setItem(key, JSON.stringify(value));
+      const scopedKey = this.getUserKey(baseKey);
+      storage.setItem(scopedKey, JSON.stringify(value));
       return true;
     } catch (err) {
-      console.error(`Storage error saving ${key}:`, err);
+      console.error(`Storage error saving ${baseKey}:`, err);
       return false;
     }
   },
 
-  // Remove item
-  remove(key) {
+  remove(baseKey) {
     try {
       const storage = getStorage();
-      storage.removeItem(key);
+      const scopedKey = this.getUserKey(baseKey);
+      storage.removeItem(scopedKey);
     } catch (err) {
-      console.error(`Storage error deleting ${key}:`, err);
+      console.error(`Storage error deleting ${baseKey}:`, err);
     }
   },
 
-  // Profile operations
+  // Isolated Profile operations
   getProfile() {
-    return this.get(STORAGE_KEYS.PROFILE, {
-      username: 'Security Officer',
-      deviceName: 'Pixel 9 Pro / BCA Security Node',
-      deviceType: 'Android 15 (Emulated Node)',
-      securityLevel: 'MAXIMUM',
+    const session = authService.getCurrentSession();
+    return this.get('profile', {
+      username: session?.name || 'Security Analyst',
+      email: session?.email || 'analyst@endpoint.local',
+      deviceName: session?.deviceName || 'Verified Client Device',
+      securityLevel: 'BALANCED',
       notificationsEnabled: true,
-      demoMode: true,
-      createdAt: new Date().toISOString(),
-      lastActive: new Date().toISOString()
+      hasGivenConsent: false,
+      createdAt: new Date().toISOString()
     });
   },
 
   saveProfile(profile) {
-    return this.set(STORAGE_KEYS.PROFILE, {
+    return this.set('profile', {
       ...this.getProfile(),
       ...profile,
-      lastActive: new Date().toISOString()
+      lastUpdated: new Date().toISOString()
     });
   },
 
-  // Settings operations
+  // Consent & Permissions
+  getConsent() {
+    return this.get('user_consent', {
+      hasGivenConsent: false,
+      allowBrowserDiagnostics: false,
+      allowFileHashCalculation: false,
+      allowUrlHeuristics: false,
+      allowNotifications: false,
+      timestamp: null
+    });
+  },
+
+  saveConsent(consent) {
+    return this.set('user_consent', {
+      ...consent,
+      hasGivenConsent: true,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  // Isolated Scan History operations
+  getScanHistory() {
+    return this.get('scan_history', []);
+  },
+
+  addScanRecord(record) {
+    const history = this.getScanHistory();
+    const newRecord = {
+      id: 'scan-' + Date.now().toString(36),
+      timestamp: new Date().toISOString(),
+      ...record
+    };
+    const updated = [newRecord, ...history].slice(0, 50);
+    this.set('scan_history', updated);
+    return newRecord;
+  },
+
+  // Isolated Threats
+  getThreatEvents() {
+    return this.get('threat_events', []);
+  },
+
+  saveThreatEvents(threats) {
+    return this.set('threat_events', threats);
+  },
+
+  updateThreatStatus(threatId, newStatus) {
+    const list = this.getThreatEvents();
+    const updated = list.map(item => item.id === threatId ? {
+      ...item,
+      status: newStatus,
+      resolvedAt: newStatus === 'RESOLVED' ? new Date().toISOString() : null
+    } : item);
+    this.saveThreatEvents(updated);
+    return updated;
+  },
+
+  // Isolated Settings
   getSettings() {
-    return this.get(STORAGE_KEYS.SETTINGS, {
+    return this.get('settings', {
       autoMonitoring: true,
-      scanFrequency: 'every_6h', // 'realtime' | 'every_6h' | 'daily' | 'manual'
-      heuristicAggressiveness: 'balanced', // 'relaxed' | 'balanced' | 'strict'
+      scanFrequency: 'every_6h',
+      heuristicAggressiveness: 'balanced',
       notifyHighRiskOnly: false,
-      enableSimulatedNetworkFeeds: true,
       localHashLookup: true,
-      cloudReputationServiceEnabled: false, // Privacy first: disabled by default
+      cloudReputationServiceEnabled: false,
       cloudApiUrl: import.meta.env?.VITE_THREAT_INTELLIGENCE_API_URL || '',
       cloudApiKeyConfigured: Boolean(import.meta.env?.VITE_THREAT_INTELLIGENCE_API_KEY)
     });
   },
 
   saveSettings(settings) {
-    return this.set(STORAGE_KEYS.SETTINGS, settings);
+    return this.set('settings', settings);
   },
 
-  // Scan History operations
-  getScanHistory() {
-    return this.get(STORAGE_KEYS.SCAN_HISTORY, []);
-  },
-
-  addScanRecord(record) {
-    const history = this.getScanHistory();
-    const newRecord = {
-      id: 'scan-' + Date.now(),
-      timestamp: new Date().toISOString(),
-      ...record
-    };
-    // keep latest 50 scans
-    const updated = [newRecord, ...history].slice(0, 50);
-    this.set(STORAGE_KEYS.SCAN_HISTORY, updated);
-    return newRecord;
-  },
-
-  // Threat events
-  getThreatEvents() {
-    return this.get(STORAGE_KEYS.THREAT_EVENTS, []);
-  },
-
-  saveThreatEvents(threats) {
-    return this.set(STORAGE_KEYS.THREAT_EVENTS, threats);
-  },
-
-  updateThreatStatus(threatId, newStatus) {
-    const list = this.getThreatEvents();
-    const updated = list.map(item => item.id === threatId ? { ...item, status: newStatus, resolvedAt: newStatus === 'RESOLVED' ? new Date().toISOString() : null } : item);
-    this.saveThreatEvents(updated);
-    return updated;
-  },
-
-  // Notifications
+  // Isolated Notifications
   getNotifications() {
-    return this.get(STORAGE_KEYS.NOTIFICATIONS, []);
+    return this.get('notifications', []);
   },
 
   saveNotifications(notifs) {
-    return this.set(STORAGE_KEYS.NOTIFICATIONS, notifs);
+    return this.set('notifications', notifs);
   },
 
   markNotificationRead(id) {
@@ -162,8 +185,9 @@ export const storageService = {
     return updated;
   },
 
-  // Reset entire database to default demo state
-  resetToDemo() {
-    Object.values(STORAGE_KEYS).forEach(k => this.remove(k));
+  // Clear current user's isolated data
+  clearUserData() {
+    const keys = ['profile', 'user_consent', 'scan_history', 'threat_events', 'settings', 'notifications'];
+    keys.forEach(k => this.remove(k));
   }
 };

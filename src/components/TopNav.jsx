@@ -7,7 +7,8 @@ import {
   Zap, 
   Menu,
   Laptop,
-  CheckCircle2
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 
 export function TopNav({ 
@@ -17,9 +18,9 @@ export function TopNav({
   unreadCount = 0, 
   onOpenNotifications,
   onToggleMobileMenu,
-  realHostInfo,
-  onToggleRealMode,
-  isRealMode = true
+  deviceInfo,
+  onSignOut,
+  currentUser
 }) {
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 px-4 lg:px-8 py-3 flex items-center justify-between">
@@ -58,25 +59,25 @@ export function TopNav({
         </div>
       </div>
 
-      {/* Right Controls: Real Hardware Moniker & Live Mode Badge */}
+      {/* Right Controls: Genuine Current Visitor Device, Notifications, Sign Out */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* REAL TIME HARDWARE BADGE */}
-        <div 
-          onClick={onToggleRealMode}
-          title="Click to toggle Real Live Host Mode"
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full cursor-pointer transition bg-emerald-950/80 border border-emerald-500/50 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-900/60 shadow-lg shadow-emerald-950/40"
-        >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span className="font-mono font-bold">REAL-TIME LAPTOP CHECK</span>
-        </div>
-
-        {/* Real Laptop Device Descriptor */}
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300">
-          <Laptop className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="truncate max-w-[170px] font-mono font-bold text-cyan-200">
-            {realHostInfo?.hostname || 'DESKTOP-60BRJ0F'}
+        {/* Dynamic Genuine Client Device Pill */}
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-700/50 text-[11px] font-semibold text-cyan-300">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span className="font-mono truncate max-w-[200px]">
+            {deviceInfo?.platformName || 'Current Client Device'}
           </span>
         </div>
+
+        {/* User Account / Profile Badge */}
+        {currentUser && (
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300">
+            <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="truncate max-w-[130px] font-mono">
+              {currentUser.name || currentUser.email}
+            </span>
+          </div>
+        )}
 
         {/* Notifications Icon with Badge */}
         <button
@@ -104,6 +105,17 @@ export function TopNav({
         >
           <SettingsIcon className="w-4 h-4" />
         </button>
+
+        {/* Sign Out Button (Requirement #2) */}
+        {currentUser && (
+          <button
+            onClick={onSignOut}
+            title="Sign out of protected session"
+            className="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 transition"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </header>
   );

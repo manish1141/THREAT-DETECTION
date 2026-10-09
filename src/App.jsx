@@ -3,18 +3,20 @@ import confetti from 'canvas-confetti';
 
 // Services
 import { storageService } from './services/storageService';
+import { authService } from './services/authService';
+import { clientDeviceDetector } from './services/clientDeviceDetector';
 import { securityService } from './services/securityService';
 import { appRiskService } from './services/appRiskService';
 import { threatService } from './services/threatService';
 import { notificationService } from './services/notificationService';
-import { realDeviceService } from './services/realDeviceService';
 
 // Components
 import { TopNav } from './components/TopNav';
 import { Sidebar } from './components/Sidebar';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { NotificationDrawer } from './components/NotificationDrawer';
-import { LoginSetupModal } from './components/LoginSetupModal';
+import { AuthModal } from './components/AuthModal';
+import { ConsentModal } from './components/ConsentModal';
 import { ThreatDetailsModal } from './components/ThreatDetailsModal';
 
 // Pages
@@ -23,6 +25,7 @@ import { MonitoringPage } from './pages/MonitoringPage';
 import { AppsPage } from './pages/AppsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
 import { UrlScannerPage } from './pages/UrlScannerPage';
+import { MessageScannerPage } from './pages/MessageScannerPage';
 import { FileScannerPage } from './pages/FileScannerPage';
 import { ThreatCenterPage } from './pages/ThreatCenterPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -36,11 +39,20 @@ export function App() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [selectedThreatModal, setSelectedThreatModal] = useState(null);
 
-  // Real Hardware Mode
-  const [isRealMode, setIsRealMode] = useState(true);
-  const [realHostData, setRealHostData] = useState(null);
+  // Authentication & Session
+  const [session, setSession] = useState(() => authService.getCurrentSession());
+  const [isAuthOpen, setIsAuthOpen] = useState(() => !authService.getCurrentSession());
 
-  // Core state
+  // Informed Consent
+  const [isConsentOpen, setIsConsentOpen] = useState(() => {
+    const s = authService.getCurrentSession();
+    return Boolean(s && !storageService.getConsent()?.hasGivenConsent);
+  });
+
+  // Genuine Current Visitor Device Info
+  const [deviceInfo, setDeviceInfo] = useState(() => clientDeviceDetector.getBrowserDeviceInfo());
+
+  // Per-User Scoped State
   const [profile, setProfile] = useState(() => storageService.getProfile());
   const [settings, setSettings] = useState(() => storageService.getSettings());
   const [dashboardData, setDashboardData] = useState(() => securityService.getDashboardState());
@@ -48,67 +60,73 @@ export function App() {
   const [apps, setApps] = useState(() => appRiskService.getAnalyzedApps());
   const [threats, setThreats] = useState(() => threatService.getThreats());
 
-  // Setup modal for first-time launch
-  const [isSetupOpen, setIsSetupOpen] = useState(false);
-
   // Deep Scan State
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState({ step: 0, text: '', progress: 0 });
 
-  // Initial Fetch of Real Laptop Telemetry
+  // Update client device detection on mount
   useEffect(() => {
-    async function loadRealHost() {
-      try {
-        const data = await realDeviceService.fetchRealDeviceData();
-        setRealHostData(data);
-        if (data.installedApps && data.installedApps.length > 0) {
-          const auditedRealApps = realDeviceService.transformRealApps(data.installedApps);
-          setApps(auditedRealApps);
-        }
-        if (data.host) {
-          setProfile(prev => ({
-            ...prev,
-            deviceName: `${data.host.hostname} (${data.host.username})`,
-            deviceType: `${data.host.platform.toUpperCase()} ${data.host.release}`
-          }));
-        }
-      } catch (e) {
-        console.error('Error querying real device telemetry:', e);
-      }
-    }
-    loadRealHost();
+    const info = clientDeviceDetector.getBrowserDeviceInfo();
+    setDeviceInfo(info);
   }, []);
 
+  // Sync state when session changes
+  const handleAuthenticated = (newSession) => {
+    setSession(newSession);
+    setIsAuthOpen(false);
+
+    // Refresh scoped user store
+    const userProfile = storageService.getProfile();
+    setProfile(userProfile);
+    setSettings(storageService.getSettings());
+    setDashboardData(securityService.getDashboardState());
+    setNotifications(notificationService.getNotifications());
+    setApps(appRiskService.getAnalyzedApps());
+    setThreats(threatService.getThreats());
+
+    // Check if consent has been given by this user
+    const userConsent = storageService.getConsent();
+    if (!userConsent?.hasGivenConsent) {
+      setIsConsentOpen(true);
+    }
+  };
+
+  const handleSignOut = () => {
+    authService.signOut();
+    setSession(null);
+    setIsAuthOpen(true);
+  };
+
+  const handleAcceptConsent = (consentOptions) => {
+    storageService.saveConsent(consentOptions);
+    setIsConsentOpen(false);
+    refreshAllState();
+  };
+
+  const handleDeclineConsent = () => {
+    storageService.saveConsent({ hasGivenConsent: true, restrictedMode: true });
+    setIsConsentOpen(false);
+  };
+
   // Refresh dashboard metrics
-  const refreshAllState = async () => {
-    try {
-      const data = await realDeviceService.fetchRealDeviceData();
-      setRealHostData(data);
-      if (data.installedApps && data.installedApps.length > 0) {
-        const auditedRealApps = realDeviceService.transformRealApps(data.installedApps);
-        setApps(auditedRealApps);
-      }
-    } catch {}
+  const refreshAllState = () => {
     const updatedDashboard = securityService.getDashboardState();
     setDashboardData(updatedDashboard);
+    setApps(appRiskService.getAnalyzedApps());
     setThreats(threatService.getThreats());
     setNotifications(notificationService.getNotifications());
   };
 
-  // Full Real-Time Security Check Execution
+  // Full Security Check Execution
   const handleRunScan = async () => {
     setIsScanning(true);
-    setScanProgress({ step: 1, text: 'Querying Windows Registry & Tasklist Subsystems...', progress: 10 });
+    setScanProgress({ step: 1, text: 'Auditing Client Browser Security Sandbox...', progress: 10 });
 
     try {
-      // Refresh live real hardware
-      const freshHost = await realDeviceService.fetchRealDeviceData();
-      setRealHostData(freshHost);
-
       const result = await securityService.runFullSecurityCheck((p) => {
         setScanProgress(p);
       });
-      await refreshAllState();
+      refreshAllState();
 
       if (result.score >= 80) {
         try {
@@ -132,9 +150,9 @@ export function App() {
     refreshAllState();
   };
 
-  // Reset demo state
+  // Reset user data to baseline
   const handleResetAll = () => {
-    storageService.resetToDemo();
+    storageService.clearUserData();
     appRiskService.resetApps();
     threatService.resetThreats();
     setProfile(storageService.getProfile());
@@ -145,7 +163,7 @@ export function App() {
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 cyber-grid-bg flex flex-col selection:bg-emerald-500 selection:text-black">
+    <div className="min-h-screen bg-[#07090e] text-slate-100 cyber-grid-bg flex flex-col selection:bg-cyan-500 selection:text-black">
       {/* Top Navbar */}
       <TopNav
         currentTab={currentTab}
@@ -154,9 +172,9 @@ export function App() {
         unreadCount={unreadNotificationsCount}
         onOpenNotifications={() => setIsNotificationOpen(true)}
         onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        realHostInfo={realHostData?.host}
-        isRealMode={isRealMode}
-        onToggleRealMode={() => setIsRealMode(!isRealMode)}
+        deviceInfo={deviceInfo}
+        onSignOut={handleSignOut}
+        currentUser={session}
       />
 
       {/* Main Layout Container */}
@@ -180,19 +198,19 @@ export function App() {
               onNavigate={setCurrentTab}
               onInspectThreat={(t) => setSelectedThreatModal(t)}
               onResolveThreat={handleStatusChange}
-              realHostData={realHostData}
+              deviceInfo={deviceInfo}
+              currentUser={session}
             />
           )}
 
           {currentTab === 'monitoring' && (
-            <MonitoringPage realHostData={realHostData} />
+            <MonitoringPage deviceInfo={deviceInfo} />
           )}
 
           {currentTab === 'apps' && (
             <AppsPage
               apps={apps}
               onRefreshApps={refreshAllState}
-              isRealMode={isRealMode}
             />
           )}
 
@@ -202,6 +220,10 @@ export function App() {
 
           {currentTab === 'urlScanner' && (
             <UrlScannerPage />
+          )}
+
+          {currentTab === 'msgScanner' && (
+            <MessageScannerPage />
           )}
 
           {currentTab === 'fileScanner' && (
@@ -238,6 +260,8 @@ export function App() {
             <SettingsPage
               profile={profile}
               settings={settings}
+              currentUser={session}
+              onSignOut={handleSignOut}
               onUpdateProfile={(p) => {
                 storageService.saveProfile(p);
                 setProfile(p);
@@ -278,17 +302,17 @@ export function App() {
         onNavigate={(route) => setCurrentTab(route)}
       />
 
-      {/* Setup / Onboarding Modal */}
-      <LoginSetupModal
-        isOpen={isSetupOpen}
-        initialProfile={profile}
-        onComplete={(newProfile) => {
-          storageService.saveProfile(newProfile);
-          storageService.set('threatguard_profile_configured', true);
-          setProfile(newProfile);
-          setIsSetupOpen(false);
-          refreshAllState();
-        }}
+      {/* Authentication Modal (Requirement #2) */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onAuthenticated={handleAuthenticated}
+      />
+
+      {/* Granular Consent Modal (Requirement #3) */}
+      <ConsentModal
+        isOpen={isConsentOpen}
+        onAcceptConsent={handleAcceptConsent}
+        onDeclineConsent={handleDeclineConsent}
       />
 
       {/* Global Threat Details Modal */}
