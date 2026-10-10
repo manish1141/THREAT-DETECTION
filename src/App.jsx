@@ -22,6 +22,7 @@ import { AuthModal } from './components/AuthModal';
 import { ConsentModal } from './components/ConsentModal';
 import { ThreatDetailsModal } from './components/ThreatDetailsModal';
 import { UrgentThreatModal } from './components/UrgentThreatModal';
+import { DynamicMessageScannerModal } from './components/DynamicMessageScannerModal';
 
 // Pages
 import { DashboardPage } from './pages/DashboardPage';
@@ -43,6 +44,7 @@ export function App() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [selectedThreatModal, setSelectedThreatModal] = useState(null);
   const [activeUrgentThreat, setActiveUrgentThreat] = useState(null);
+  const [dynamicMessageJob, setDynamicMessageJob] = useState(null);
 
   // Authentication & Session
   const [session, setSession] = useState(() => authService.getCurrentSession());
@@ -93,7 +95,8 @@ export function App() {
 
     // Subscribe to Message Sentinel for on-time scam message interception
     const unsubscribeMessage = liveMessageSentinel.onThreatDetected((threat) => {
-      setActiveUrgentThreat(threat);
+      // Trigger dynamic interactive scanning modal
+      setDynamicMessageJob(threat);
       threatService.addThreat({
         title: `Interception Alert: ${threat.riskLevel} Scam Message`,
         severity: threat.riskLevel || 'HIGH',
@@ -404,6 +407,18 @@ export function App() {
           onClose={() => setActiveUrgentThreat(null)}
           onQuarantine={() => {
             setActiveUrgentThreat(null);
+            setCurrentTab('threatCenter');
+          }}
+        />
+      )}
+
+      {/* Dynamic Interactive On-Time Message Sentinel Modal */}
+      {dynamicMessageJob && (
+        <DynamicMessageScannerModal
+          scanJob={dynamicMessageJob}
+          onClose={() => setDynamicMessageJob(null)}
+          onQuarantine={() => {
+            setDynamicMessageJob(null);
             setCurrentTab('threatCenter');
           }}
         />

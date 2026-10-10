@@ -59,12 +59,23 @@ export function MessageScannerPage() {
     }
   };
 
+  const [scanStep, setScanStep] = useState('');
+
   const analyzeMessage = (textToAnalyze) => {
     const text = textToAnalyze || inputText;
     if (!text.trim()) return;
 
     setIsScanning(true);
     setResult(null);
+    setScanStep('Tokenizing input strings & parsing language lexicon...');
+
+    setTimeout(() => {
+      setScanStep('Auditing panic coercion, fake deadlines & banking OTP hooks...');
+    }, 450);
+
+    setTimeout(() => {
+      setScanStep('Cross-referencing embedded links & malicious domain signatures...');
+    }, 900);
 
     setTimeout(() => {
       // Evaluate via live sentinel logic
@@ -78,11 +89,12 @@ export function MessageScannerPage() {
           urlsFound: assessment.urlsFound
         });
 
-        // Also trigger sentinel alarm if risky
+        // Trigger live sentinel alert and dynamic popup if risky
         liveMessageSentinel.processIncomingMessage(text, 'Manual Input');
       }
       setIsScanning(false);
-    }, 300);
+      setScanStep('');
+    }, 1400);
   };
 
   const getBadge = (lvl) => {
@@ -189,6 +201,17 @@ export function MessageScannerPage() {
             className="w-full p-4 rounded-2xl bg-[#040f09] border border-emerald-950 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#00ff66] font-mono leading-relaxed"
           />
 
+          {/* Scanning Progress Activity Line */}
+          {isScanning && (
+            <div className="p-3 rounded-xl bg-[#04120a] border border-[#00ff66]/30 text-xs text-[#00ff66] flex items-center justify-between font-mono animate-pulse">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-ping"></span>
+                <span>{scanStep || 'Executing Dynamic On-Device Inspection...'}</span>
+              </span>
+              <span className="text-[10px] text-cyan-400">Zero Cloud Upload</span>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span className="text-[11px] text-slate-500 font-mono">
               Analyzed 100% locally on-device • Message is never sent to any server
@@ -202,8 +225,8 @@ export function MessageScannerPage() {
                   : 'bg-gradient-to-r from-[#00ff66] to-emerald-400 hover:from-[#00ff66] hover:to-[#00f0ff] text-[#030a06] shadow-md shadow-[#00ff66]/20 active:scale-95'
               }`}
             >
-              <Search className="w-4 h-4" />
-              <span>{isScanning ? 'Analyzing Heuristics...' : 'Scan Message Risk'}</span>
+              <Search className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
+              <span>{isScanning ? 'AUDITING LEXICON...' : 'Scan Message Risk'}</span>
             </button>
           </div>
         </div>
