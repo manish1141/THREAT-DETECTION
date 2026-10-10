@@ -25,7 +25,6 @@ import { UrgentThreatModal } from './components/UrgentThreatModal';
 import { DynamicMessageScannerModal } from './components/DynamicMessageScannerModal';
 import { ThreatRemediationModal } from './components/ThreatRemediationModal';
 import { SecurityCertificateModal } from './components/SecurityCertificateModal';
-import { JuryPitchModal } from './components/JuryPitchModal';
 import { i18nService } from './services/i18nService';
 import { audioService } from './services/audioService';
 
@@ -53,7 +52,6 @@ export function App() {
   const [remediationJob, setRemediationJob] = useState(null);
   const [currentLanguage, setCurrentLanguage] = useState(() => i18nService.getLanguage());
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
-  const [isJuryPitchOpen, setIsJuryPitchOpen] = useState(false);
   const [isSoundOn, setIsSoundOn] = useState(() => audioService.isSoundEnabled());
 
   // Authentication & Session
@@ -351,7 +349,6 @@ export function App() {
         currentUser={session}
         currentLanguage={currentLanguage}
         onToggleLanguage={handleToggleLanguage}
-        onOpenJuryPitch={() => setIsJuryPitchOpen(true)}
         isSoundOn={isSoundOn}
         onToggleSound={handleToggleSound}
       />
@@ -557,14 +554,6 @@ export function App() {
           deviceInfo={deviceInfo}
           currentUser={session}
           score={dashboardData.score}
-        />
-      )}
-
-      {/* Jury Technical Pitch & Architecture Dossier Modal */}
-      {isJuryPitchOpen && (
-        <JuryPitchModal
-          onClose={() => setIsJuryPitchOpen(false)}
-          currentLanguage={currentLanguage}
         />
       )}
     </div>

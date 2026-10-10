@@ -23,7 +23,6 @@ export function TopNav({
   currentUser,
   currentLanguage = 'en',
   onToggleLanguage,
-  onOpenJuryPitch,
   isSoundOn = true,
   onToggleSound
 }) {
@@ -72,18 +71,6 @@ export function TopNav({
           <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-ping" />
           <span>100% OFFLINE • ZERO CLOUD</span>
         </div>
-
-        {/* Jury Technical Pitch Dossier Button */}
-        {onOpenJuryPitch && (
-          <button
-            onClick={onOpenJuryPitch}
-            className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:border-cyan-400 border border-cyan-500/40 text-[11px] font-mono font-bold text-cyan-300 transition flex items-center gap-1.5 active:scale-95 shadow-[0_0_10px_rgba(0,240,255,0.2)] cursor-pointer"
-            title="Jury Technical Pitch & Architecture Dossier (હેકાથોન ડેમો)"
-          >
-            <span>🎓</span>
-            <span className="hidden sm:inline">{currentLanguage === 'gu' ? 'જૂરી પીચ ડેક' : 'Jury Pitch & Tech'}</span>
-          </button>
-        )}
 
         {/* Cyber SFX Sound Toggle */}
         {onToggleSound && (
