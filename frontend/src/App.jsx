@@ -24,6 +24,8 @@ import { ThreatDetailsModal } from './components/ThreatDetailsModal';
 import { UrgentThreatModal } from './components/UrgentThreatModal';
 import { DynamicMessageScannerModal } from './components/DynamicMessageScannerModal';
 import { ThreatRemediationModal } from './components/ThreatRemediationModal';
+import { SecurityCertificateModal } from './components/SecurityCertificateModal';
+import { i18nService } from './services/i18nService';
 
 // Pages
 import { DashboardPage } from './pages/DashboardPage';
@@ -47,6 +49,8 @@ export function App() {
   const [activeUrgentThreat, setActiveUrgentThreat] = useState(null);
   const [dynamicMessageJob, setDynamicMessageJob] = useState(null);
   const [remediationJob, setRemediationJob] = useState(null);
+  const [currentLanguage, setCurrentLanguage] = useState(() => i18nService.getLanguage());
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
 
   // Authentication & Session
   const [session, setSession] = useState(() => authService.getCurrentSession());
@@ -271,6 +275,39 @@ export function App() {
     } catch {}
   };
 
+  // Toggle Language Handler
+  const handleToggleLanguage = () => {
+    const next = currentLanguage === 'en' ? 'gu' : 'en';
+    setCurrentLanguage(next);
+    i18nService.setLanguage(next);
+  };
+
+  // Attack Simulator: Threat injection handler
+  const handleSimulateThreat = (threatData) => {
+    threatService.addThreat(threatData);
+    refreshAllState();
+    notificationService.addNotification({
+      title: 'ATTACK SIMULATION DETECTED',
+      message: threatData.name || threatData.title || 'Simulated threat vector intercepted.',
+      type: 'HIGH',
+      route: 'threatCenter'
+    });
+  };
+
+  // Attack Simulator: Scam message injection handler
+  const handleSimulateScamMessage = (scamData) => {
+    setDynamicMessageJob(scamData);
+    threatService.addThreat({
+      title: `Interception Alert: ${scamData.category}`,
+      severity: scamData.riskLevel || 'HIGH',
+      category: 'PHISHING_MESSAGE',
+      description: scamData.text,
+      evidence: scamData.reasons?.join('; '),
+      remediation: scamData.recommendations?.[0]
+    });
+    refreshAllState();
+  };
+
   // Reset user data to baseline
   const handleResetAll = () => {
     storageService.clearUserData();
@@ -296,6 +333,8 @@ export function App() {
         deviceInfo={deviceInfo}
         onSignOut={handleSignOut}
         currentUser={session}
+        currentLanguage={currentLanguage}
+        onToggleLanguage={handleToggleLanguage}
       />
 
       {/* Main Layout Container */}
@@ -306,6 +345,7 @@ export function App() {
           onSelectTab={setCurrentTab}
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
+          currentLanguage={currentLanguage}
         />
 
         {/* Page Content Viewport */}
@@ -322,6 +362,14 @@ export function App() {
               onResolveAllThreats={handleResolveAllThreats}
               deviceInfo={deviceInfo}
               currentUser={session}
+              onOpenCertificate={() => setIsCertificateOpen(true)}
+              onSimulateThreat={handleSimulateThreat}
+              onSimulateScamMessage={handleSimulateScamMessage}
+              onResetThreats={() => {
+                threatService.resetThreats();
+                refreshAllState();
+              }}
+              currentLanguage={currentLanguage}
             />
           )}
 
@@ -480,6 +528,16 @@ export function App() {
           isAll={remediationJob.isAll}
           onClose={() => setRemediationJob(null)}
           onComplete={handleRemediationComplete}
+        />
+      )}
+
+      {/* Official On-Device Security Audit Certificate Modal */}
+      {isCertificateOpen && (
+        <SecurityCertificateModal
+          onClose={() => setIsCertificateOpen(false)}
+          deviceInfo={deviceInfo}
+          currentUser={session}
+          score={dashboardData.score}
         />
       )}
     </div>

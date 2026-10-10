@@ -20,7 +20,9 @@ export function TopNav({
   onToggleMobileMenu,
   deviceInfo,
   onSignOut,
-  currentUser
+  currentUser,
+  currentLanguage = 'en',
+  onToggleLanguage
 }) {
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 px-4 lg:px-8 py-3 flex items-center justify-between">
@@ -53,18 +55,37 @@ export function TopNav({
               </span>
             </div>
             <p className="text-[10px] text-emerald-400/70 hidden sm:block tracking-tight font-mono">
-              Your Device. Your Security. Your Control.
+              {currentLanguage === 'gu' ? 'તમારું ડિવાઇસ. તમારી સુરક્ષા. તમારું નિયંત્રણ.' : 'Your Device. Your Security. Your Control.'}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Right Controls: Genuine Current Visitor Device, Notifications, Sign Out */}
+      {/* Right Controls: Offline Badge, Language Toggle, Device Pill, Notifications, Sign Out */}
       <div className="flex items-center gap-2 sm:gap-3">
+        
+        {/* Zero-Telemetry Offline Guarantee Badge */}
+        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-[10px] font-mono font-bold text-emerald-300 shadow-[0_0_10px_rgba(0,255,102,0.1)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-ping" />
+          <span>100% OFFLINE CAPABLE • 0 TELEMETRY</span>
+        </div>
+
+        {/* Gujarati / English Interactive Language Switcher */}
+        {onToggleLanguage && (
+          <button
+            onClick={onToggleLanguage}
+            className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-cyan-950/80 via-[#03150b] to-emerald-950/80 hover:border-[#00ff66]/50 border border-slate-800 text-[11px] font-mono font-bold text-[#00ff66] transition flex items-center gap-1.5 active:scale-95 shadow-[0_0_10px_rgba(0,255,102,0.15)] cursor-pointer"
+            title="Toggle between English and Gujarati (જૂરી રાઉન્ડ માટે)"
+          >
+            <span>🌐</span>
+            <span>{currentLanguage === 'gu' ? 'ગુજરાતી' : 'English'}</span>
+          </button>
+        )}
+
         {/* Dynamic Genuine Client Device Pill */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#041a0e] border border-[#00ff66]/40 text-[11px] font-semibold text-[#00ff66] shadow-[0_0_12px_rgba(0,255,102,0.15)]">
           <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]"></span>
-          <span className="font-mono truncate max-w-[200px]">
+          <span className="font-mono truncate max-w-[180px]">
             {deviceInfo?.platformName || 'Current Client Device'}
           </span>
         </div>

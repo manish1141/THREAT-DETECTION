@@ -31,7 +31,23 @@ export const NAV_ITEMS = [
   { id: 'settings', label: 'Settings & Privacy Controls', icon: Settings },
 ];
 
-export function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
+const GUJARATI_LABELS = {
+  dashboard: 'સુરક્ષા ડેશબોર્ડ',
+  monitoring: 'રીયલ-ટાઇમ સેન્ટીનલ',
+  apps: 'એપ રિસ્ક એનાલાઇઝર',
+  permissions: 'પરમિશન ઓડિટર',
+  urlScanner: 'URL / ફિશિંગ ગાર્ડ',
+  msgScanner: 'મેસેજ / SMS સ્કેનર',
+  fileScanner: 'ફાઇલ હેશ ઇન્સ્પેક્ટર',
+  threatCenter: 'થ્રેટ ઇન્સિડન્ટ સેન્ટર',
+  history: 'સ્કેન હિસ્ટ્રી અને ટ્રેન્ડ્સ',
+  report: 'એક્ઝિક્યુટિવ સુરક્ષા રિપોર્ટ',
+  education: 'સાયબર સેફ્ટી એકેડેમી',
+  settings: 'સેટિંગ્સ અને પ્રાઇવસી કંટ્રોલ્સ',
+};
+
+export function Sidebar({ currentTab, onSelectTab, isOpen, onClose, currentLanguage = 'en' }) {
+  const isGujarati = currentLanguage === 'gu';
   return (
     <>
       {/* Mobile backdrop */}
@@ -53,12 +69,13 @@ export function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
         {/* Navigation list */}
         <div className="overflow-y-auto space-y-1 pr-1">
           <div className="text-[11px] font-mono uppercase text-slate-500 font-bold px-3 py-2 tracking-wider">
-            SECURITY SUITE MODULES
+            {isGujarati ? 'સુરક્ષા મોડ્યુલ્સ' : 'SECURITY SUITE MODULES'}
           </div>
 
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
+            const displayLabel = isGujarati ? (GUJARATI_LABELS[item.id] || item.label) : item.label;
             return (
               <button
                 key={item.id}
@@ -75,7 +92,7 @@ export function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
                 `}
               >
                 <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? 'text-[#00ff66] scale-110 drop-shadow-[0_0_8px_rgba(0,255,102,0.8)]' : 'text-slate-500 group-hover:text-emerald-400'}`} />
-                <span className="truncate">{item.label}</span>
+                <span className="truncate">{displayLabel}</span>
               </button>
             );
           })}

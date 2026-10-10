@@ -17,11 +17,13 @@ import {
   Laptop, 
   Cpu, 
   HardDrive,
-  Users
+  Users,
+  Award
 } from 'lucide-react';
 import { SecurityScoreCircle } from '../components/SecurityScoreCircle';
 import { ThreatCard } from '../components/ThreatCard';
 import { TeamCreditsCard } from '../components/TeamCreditsCard';
+import { AttackSimulatorCard } from '../components/AttackSimulatorCard';
 
 export function DashboardPage({ 
   dashboardData, 
@@ -33,7 +35,12 @@ export function DashboardPage({
   onResolveThreat,
   onResolveAllThreats,
   deviceInfo,
-  currentUser
+  currentUser,
+  onOpenCertificate,
+  onSimulateThreat,
+  onSimulateScamMessage,
+  onResetThreats,
+  currentLanguage = 'en'
 }) {
   const { 
     score, 
@@ -141,10 +148,23 @@ export function DashboardPage({
               }`}
             >
               <Play className={`w-5 h-5 fill-current ${isScanning ? 'animate-spin' : ''}`} />
-              <span className="font-extrabold tracking-widest">RUN FULL SECURITY CHECK</span>
+              <span className="font-extrabold tracking-widest">
+                {currentLanguage === 'gu' ? 'સંપૂર્ણ સુરક્ષા સ્કેન ચલાવો' : 'RUN FULL SECURITY CHECK'}
+              </span>
             </button>
+
+            {onOpenCertificate && (
+              <button
+                onClick={onOpenCertificate}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition bg-emerald-950/60 hover:bg-emerald-900/60 text-[#00ff66] border border-[#00ff66]/40 shadow-[0_0_15px_rgba(0,255,102,0.2)] active:scale-95 font-mono cursor-pointer"
+              >
+                <Award className="w-4 h-4 text-[#00ff66]" />
+                <span>{currentLanguage === 'gu' ? 'સુરક્ષા પ્રમાણપત્ર (PDF)' : 'Download Security Certificate (PDF)'}</span>
+              </button>
+            )}
+
             <span className="text-[11px] text-slate-500">
-              Zero cloud telemetry • 100% On-Device Analysis
+              {currentLanguage === 'gu' ? 'ઝીરો ક્લાઉડ ટેલિમેટ્રી • ૧૦૦% ઓન-ડિવાઇસ એનાલિસિસ' : 'Zero cloud telemetry • 100% On-Device Analysis'}
             </span>
           </div>
         </div>
@@ -281,12 +301,20 @@ export function DashboardPage({
         </div>
       </div>
 
+      {/* Live Attack Simulator (Jury Demo Mode) */}
+      <AttackSimulatorCard
+        onSimulateThreat={onSimulateThreat}
+        onSimulateScamMessage={onSimulateScamMessage}
+        onResetThreats={onResetThreats}
+        currentLanguage={currentLanguage}
+      />
+
       {/* Immediate Attention Items */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Immediate Attention Items
+              {currentLanguage === 'gu' ? 'તાત્કાલિક ધ્યાનમાં લેવાના જોખમો' : 'Immediate Attention Items'}
             </h3>
             <span className={`text-xs font-mono px-2 py-0.5 rounded-full border ${
               activeThreats.length > 0 
@@ -303,14 +331,14 @@ export function DashboardPage({
                 onClick={onResolveAllThreats}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 via-[#00ff66]/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-[#00ff66]/30 text-[#00ff66] border border-[#00ff66]/50 text-xs font-mono font-bold flex items-center gap-1.5 transition active:scale-95 shadow-[0_0_15px_rgba(0,255,102,0.25)] cursor-pointer"
               >
-                <span>⚡ Resolve All (Restore Score to 100)</span>
+                <span>⚡ {currentLanguage === 'gu' ? 'બધા સોલ્વ કરો (સ્કોર ૧૦૦ કરો)' : 'Resolve All (Restore Score to 100)'}</span>
               </button>
             )}
             <button
               onClick={() => onNavigate('threatCenter')}
               className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1"
             >
-              <span>View All Incidents</span>
+              <span>{currentLanguage === 'gu' ? 'બધા જોખમો જુઓ' : 'View All Incidents'}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -333,11 +361,22 @@ export function DashboardPage({
               <ShieldCheck className="w-8 h-8" />
             </div>
             <h4 className="text-base font-black text-white font-mono tracking-wide">
-              100/100 SYSTEM INTEGRITY PERFECT
+              {currentLanguage === 'gu' ? '૧૦૦/૧૦૦ સિસ્ટમ સુરક્ષા સંપૂર્ણ સુરક્ષિત' : '100/100 SYSTEM INTEGRITY PERFECT'}
             </h4>
             <p className="text-xs text-emerald-300/90 mt-1 max-w-md mx-auto">
-              All identified security threats have been resolved. Real-time on-device heuristics report zero active compromise vectors.
+              {currentLanguage === 'gu' 
+                ? 'તમામ જોખમો સફળતાપૂર્વક હલ કરવામાં આવ્યા છે. રીયલ-ટાઇમ ઓન-ડિવાઇસ સિસ્ટમમાં કોઈ ખતરો નથી.' 
+                : 'All identified security threats have been resolved. Real-time on-device heuristics report zero active compromise vectors.'}
             </p>
+            {onOpenCertificate && (
+              <button
+                onClick={onOpenCertificate}
+                className="mt-4 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/20 via-[#00ff66]/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-[#00ff66]/30 text-[#00ff66] border border-[#00ff66]/50 font-mono text-xs font-bold inline-flex items-center gap-2 transition active:scale-95 shadow-[0_0_20px_rgba(0,255,102,0.25)] cursor-pointer"
+              >
+                <Award className="w-4 h-4 text-[#00ff66]" />
+                <span>{currentLanguage === 'gu' ? 'સુરક્ષા પ્રમાણપત્ર ડાઉનલોડ કરો (PDF)' : 'Download Security Audit Certificate'}</span>
+              </button>
+            )}
           </div>
         )}
       </div>
