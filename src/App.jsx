@@ -23,6 +23,7 @@ import { ConsentModal } from './components/ConsentModal';
 import { ThreatDetailsModal } from './components/ThreatDetailsModal';
 import { UrgentThreatModal } from './components/UrgentThreatModal';
 import { DynamicMessageScannerModal } from './components/DynamicMessageScannerModal';
+import { ThreatRemediationModal } from './components/ThreatRemediationModal';
 
 // Pages
 import { DashboardPage } from './pages/DashboardPage';
@@ -45,6 +46,7 @@ export function App() {
   const [selectedThreatModal, setSelectedThreatModal] = useState(null);
   const [activeUrgentThreat, setActiveUrgentThreat] = useState(null);
   const [dynamicMessageJob, setDynamicMessageJob] = useState(null);
+  const [remediationJob, setRemediationJob] = useState(null);
 
   // Authentication & Session
   const [session, setSession] = useState(() => authService.getCurrentSession());
@@ -229,37 +231,40 @@ export function App() {
     }
   };
 
-  // Threat resolution handler
+  // Threat resolution handler with realistic remediation delay
   const handleStatusChange = (id, newStatus) => {
-    threatService.updateStatus(id, newStatus);
-    refreshAllState();
-
     if (newStatus === 'RESOLVED') {
-      const updated = securityService.getDashboardState();
-      if (updated.score >= 90) {
-        try {
-          confetti({
-            particleCount: 80,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-        } catch {}
-      }
+      const t = threatService.getThreatById(id);
+      setRemediationJob({ threat: t, isAll: false });
+    } else {
+      threatService.updateStatus(id, newStatus);
+      refreshAllState();
     }
   };
 
-  // Resolve all threats in one click and immediately restore score to 100
+  // Resolve all threats with batch remediation modal
   const handleResolveAllThreats = () => {
-    const list = threatService.getThreats();
-    list.forEach(t => {
-      if (t.status === 'ACTIVE') {
-        threatService.updateStatus(t.id, 'RESOLVED');
-      }
-    });
+    setRemediationJob({ threat: null, isAll: true });
+  };
+
+  // Remediation completed handler
+  const handleRemediationComplete = (threatId) => {
+    if (remediationJob?.isAll) {
+      const list = threatService.getThreats();
+      list.forEach(t => {
+        if (t.status === 'ACTIVE') {
+          threatService.updateStatus(t.id, 'RESOLVED');
+        }
+      });
+    } else if (threatId) {
+      threatService.updateStatus(threatId, 'RESOLVED');
+    }
+    setRemediationJob(null);
     refreshAllState();
+
     try {
       confetti({
-        particleCount: 140,
+        particleCount: 150,
         spread: 85,
         origin: { y: 0.55 }
       });
@@ -465,6 +470,16 @@ export function App() {
             refreshAllState();
             setTimeout(() => setCurrentTab('threatCenter'), 50);
           }}
+        />
+      )}
+
+      {/* 1-Minute Realistic On-Device Remediation Modal */}
+      {remediationJob && (
+        <ThreatRemediationModal
+          threat={remediationJob.threat}
+          isAll={remediationJob.isAll}
+          onClose={() => setRemediationJob(null)}
+          onComplete={handleRemediationComplete}
         />
       )}
     </div>

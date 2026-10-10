@@ -248,11 +248,11 @@ export function DashboardPage({
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {[
-            { label: 'Applications', val: breakdown?.applications || 90, desc: 'Package hygiene & signatures' },
-            { label: 'Permissions', val: breakdown?.permissions || 78, desc: 'Access scope & combinations' },
-            { label: 'Network', val: breakdown?.network || 92, desc: 'TLS & wireless transport' },
-            { label: 'Privacy', val: breakdown?.privacy || 84, desc: 'Background exfiltration risks' },
-            { label: 'Threat Protection', val: breakdown?.threatProtection || 95, desc: 'Known signatures & hashes' }
+            { label: 'Applications', val: typeof breakdown?.applications === 'number' ? breakdown.applications : 100, desc: 'Package hygiene & signatures (20% weight)' },
+            { label: 'Permissions', val: typeof breakdown?.permissions === 'number' ? breakdown.permissions : 100, desc: 'Access scope & combinations (20% weight)' },
+            { label: 'Network', val: typeof breakdown?.network === 'number' ? breakdown.network : 100, desc: 'TLS & wireless transport (15% weight)' },
+            { label: 'Privacy', val: typeof breakdown?.privacy === 'number' ? breakdown.privacy : 100, desc: 'Background exfiltration risks (15% weight)' },
+            { label: 'Threat Protection', val: typeof breakdown?.threatProtection === 'number' ? breakdown.threatProtection : 100, desc: 'Known signatures & hashes (30% weight)' }
           ].map((item, idx) => (
             <div key={idx} className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-2">
               <div className="flex items-center justify-between text-xs">
@@ -274,6 +274,10 @@ export function DashboardPage({
               <p className="text-[10px] text-slate-500">{item.desc}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-3 text-[11px] font-mono text-slate-400/80 flex items-center justify-between px-1">
+          <span>Mathematical Formula: (Apps × 20%) + (Permissions × 20%) + (Network × 15%) + (Privacy × 15%) + (Threats × 30%)</span>
+          <span className="text-cyan-400 font-bold">100% Deterministic & Auditable</span>
         </div>
       </div>
 

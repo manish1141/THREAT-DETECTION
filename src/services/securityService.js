@@ -23,39 +23,62 @@ export const securityService = {
     const activeThreats = allThreats.filter(t => t.status === 'ACTIVE');
     const highRiskThreats = activeThreats.filter(t => t.severity === 'HIGH' || t.severity === 'CRITICAL');
 
-    // Baseline vectors (Max 100 for each vector)
-    let appScore = hasWebCrypto ? 100 : 75;
-    let permScore = 100;
-    let networkScore = isHttps ? 100 : 60;
-    let privacyScore = 100;
-    let threatProtectionScore = 100;
-
-    // Deduct points based strictly on ACTIVE threats
-    let threatDeduction = 0;
-    activeThreats.forEach(t => {
-      if (t.severity === 'CRITICAL') threatDeduction += 25;
-      else if (t.severity === 'HIGH') threatDeduction += 15;
-      else if (t.severity === 'MEDIUM') threatDeduction += 8;
-      else threatDeduction += 4;
-    });
-
-    threatProtectionScore = Math.max(20, 100 - threatDeduction);
-
-    // If there are privacy or permission threats active
-    const permThreats = activeThreats.filter(t => 
-      t.threatType === 'Dangerous Permission Combination' || 
-      t.threatType === 'Privacy Risk' || 
-      t.category === 'PERMISSIONS'
+    // Vector 1: Applications (Weight: 20%)
+    const appThreats = activeThreats.filter(t => 
+      t.source === 'App Risk Analyzer' || 
+      t.threatType === 'Dangerous Permission Combination' ||
+      (t.affectedItem && t.affectedItem.toLowerCase().includes('.apk'))
     );
-    if (permThreats.length > 0) {
-      permScore = Math.max(40, 100 - (permThreats.length * 15));
-      privacyScore = Math.max(40, 100 - (permThreats.length * 12));
+    let appScore = hasWebCrypto ? 100 : 80;
+    if (appThreats.length > 0) {
+      appScore = Math.max(50, 100 - (appThreats.length * 20));
     }
 
-    // Dynamic overall score calculation
+    // Vector 2: Permissions (Weight: 20%)
+    const permThreats = activeThreats.filter(t => 
+      t.threatType === 'Dangerous Permission Combination' || 
+      t.source === 'Permission Auditor'
+    );
+    let permScore = 100;
+    if (permThreats.length > 0) {
+      permScore = Math.max(40, 100 - (permThreats.length * 25));
+    }
+
+    // Vector 3: Network Transport (Weight: 15%)
+    const netThreats = activeThreats.filter(t => 
+      t.threatType === 'Network Risk' || 
+      t.source === 'Network Sentinel'
+    );
+    let networkScore = isHttps ? 100 : 60;
+    if (netThreats.length > 0) {
+      networkScore = Math.max(40, networkScore - (netThreats.length * 30));
+    }
+
+    // Vector 4: Privacy & Isolation (Weight: 15%)
+    const privacyThreats = activeThreats.filter(t => 
+      t.threatType === 'Privacy Risk' || 
+      (t.name && t.name.toLowerCase().includes('privacy')) ||
+      (t.name && t.name.toLowerCase().includes('harvesting'))
+    );
+    let privacyScore = 100;
+    if (privacyThreats.length > 0) {
+      privacyScore = Math.max(40, 100 - (privacyThreats.length * 30));
+    }
+
+    // Vector 5: Threat Protection (Weight: 30%)
+    let threatDeduction = 0;
+    activeThreats.forEach(t => {
+      if (t.severity === 'CRITICAL') threatDeduction += 35;
+      else if (t.severity === 'HIGH') threatDeduction += 25;
+      else if (t.severity === 'MEDIUM') threatDeduction += 15;
+      else threatDeduction += 8;
+    });
+    let threatProtectionScore = Math.max(20, 100 - threatDeduction);
+
+    // Exact Weighted Overall Score calculation
     let overallScore;
     if (activeThreats.length === 0) {
-      // WHEN ALL THREATS ARE RESOLVED: Score reaches 100!
+      // WHEN ALL THREATS ARE RESOLVED: All vectors are 100% and score is 100!
       overallScore = isHttps ? 100 : 92;
       appScore = 100;
       permScore = 100;
@@ -63,13 +86,12 @@ export const securityService = {
       privacyScore = 100;
       threatProtectionScore = 100;
     } else {
-      overallScore = Math.max(15, Math.min(98, Math.round(
-        (appScore * 0.20) +
-        (permScore * 0.20) +
-        (networkScore * 0.15) +
-        (privacyScore * 0.15) +
-        (threatProtectionScore * 0.30)
-      )));
+      const weightedSum = (appScore * 0.20) +
+                          (permScore * 0.20) +
+                          (networkScore * 0.15) +
+                          (privacyScore * 0.15) +
+                          (threatProtectionScore * 0.30);
+      overallScore = Math.max(10, Math.min(99, Math.round(weightedSum)));
     }
 
     const status = overallScore >= 90
