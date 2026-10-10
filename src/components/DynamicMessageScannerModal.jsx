@@ -215,8 +215,11 @@ export function DynamicMessageScannerModal({
             {isHighRisk && (
               <button
                 onClick={() => {
-                  if (onQuarantine) onQuarantine(scanJob);
-                  onClose();
+                  if (onQuarantine) {
+                    onQuarantine(scanJob);
+                  } else {
+                    onClose();
+                  }
                 }}
                 className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-red-600/30 active:scale-95 text-xs uppercase tracking-wider"
               >

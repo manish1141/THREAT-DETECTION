@@ -135,8 +135,11 @@ export function UrgentThreatModal({ threat, onClose, onQuarantine }) {
           <div className="flex items-center space-x-3 pt-2">
             <button
               onClick={() => {
-                if (onQuarantine) onQuarantine(threat);
-                onClose();
+                if (onQuarantine) {
+                  onQuarantine(threat);
+                } else {
+                  onClose();
+                }
               }}
               className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl flex items-center justify-center space-x-2 transition-all shadow-lg shadow-red-600/30 active:scale-98 font-mono"
             >

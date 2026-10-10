@@ -416,7 +416,8 @@ export function App() {
           onClose={() => setActiveUrgentThreat(null)}
           onQuarantine={() => {
             setActiveUrgentThreat(null);
-            setCurrentTab('threatCenter');
+            refreshAllState();
+            setTimeout(() => setCurrentTab('threatCenter'), 50);
           }}
         />
       )}
@@ -428,7 +429,8 @@ export function App() {
           onClose={() => setDynamicMessageJob(null)}
           onQuarantine={() => {
             setDynamicMessageJob(null);
-            setCurrentTab('threatCenter');
+            refreshAllState();
+            setTimeout(() => setCurrentTab('threatCenter'), 50);
           }}
         />
       )}
