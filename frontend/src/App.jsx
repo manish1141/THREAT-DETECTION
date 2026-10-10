@@ -11,6 +11,7 @@ import { clientPackageInspector } from './services/clientPackageInspector';
 import { threatService } from './services/threatService';
 import { notificationService } from './services/notificationService';
 import { liveFileSentinel } from './services/liveFileSentinel';
+import { liveMessageSentinel } from './services/liveMessageSentinel';
 
 // Components
 import { TopNav } from './components/TopNav';
@@ -76,10 +77,9 @@ export function App() {
     const info = clientDeviceDetector.getBrowserDeviceInfo();
     setDeviceInfo(info);
 
-    // Subscribe to Sentinel for immediate threat popup alerts
-    const unsubscribe = liveFileSentinel.onThreatDetected((threat) => {
+    // Subscribe to File Sentinel for immediate threat popup alerts
+    const unsubscribeFile = liveFileSentinel.onThreatDetected((threat) => {
       setActiveUrgentThreat(threat);
-      // Auto-add threat to threat center and refresh
       threatService.addThreat({
         title: `Monitored File Threat: ${threat.fileName}`,
         severity: threat.riskLevel || 'HIGH',
@@ -87,6 +87,20 @@ export function App() {
         description: `Active Sentinel intercepted risky file with score ${threat.riskScore}/100. Checksum: ${threat.sha256?.substring(0, 16)}...`,
         evidence: threat.reasons?.join('; ') || 'Heuristic rules exceeded danger thresholds.',
         remediation: threat.recommendations?.[0] || 'Delete file immediately and quarantine storage.'
+      });
+      refreshAllState();
+    });
+
+    // Subscribe to Message Sentinel for on-time scam message interception
+    const unsubscribeMessage = liveMessageSentinel.onThreatDetected((threat) => {
+      setActiveUrgentThreat(threat);
+      threatService.addThreat({
+        title: `Interception Alert: ${threat.riskLevel} Scam Message`,
+        severity: threat.riskLevel || 'HIGH',
+        category: 'PHISHING_MESSAGE',
+        description: `Live message sentinel detected phishing/fraud vectors in text: "${threat.text?.substring(0, 60)}..."`,
+        evidence: threat.reasons?.join('; ') || 'Social engineering heuristics triggered.',
+        remediation: threat.recommendations?.[0] || 'Do not click links or share credentials.'
       });
       refreshAllState();
     });
@@ -107,13 +121,24 @@ export function App() {
       }
     };
 
+    // Global Paste Listener: When user pastes text anywhere in browser, immediately audit for scams
+    const handlePaste = (e) => {
+      const pastedText = e.clipboardData?.getData('text');
+      if (pastedText && pastedText.length > 15 && pastedText.length < 3000) {
+        liveMessageSentinel.processIncomingMessage(pastedText, 'Pasted Text');
+      }
+    };
+
     window.addEventListener('dragover', handleDragOver);
     window.addEventListener('drop', handleDrop);
+    window.addEventListener('paste', handlePaste);
 
     return () => {
-      unsubscribe();
+      unsubscribeFile();
+      unsubscribeMessage();
       window.removeEventListener('dragover', handleDragOver);
       window.removeEventListener('drop', handleDrop);
+      window.removeEventListener('paste', handlePaste);
     };
   }, []);
 
