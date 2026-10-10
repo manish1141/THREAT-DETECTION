@@ -85,11 +85,11 @@ export function AppsPage({ apps, onRefreshApps }) {
   return (
     <div className="space-y-6 animate-fadeIn pb-16 lg:pb-8">
       {/* Header */}
-      <div className="glass-panel p-6 rounded-3xl border-cyan-500/20">
+      <div className="glass-panel p-6 rounded-3xl border-[#00ff66]/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#00ff66] font-bold px-2 py-0.5 rounded bg-[#072414] border border-[#00ff66]/40 shadow-[0_0_8px_rgba(0,255,102,0.2)]">
                 REAL-TIME PACKAGE & APPLICATION ANALYZER
               </span>
             </div>
@@ -103,7 +103,7 @@ export function AppsPage({ apps, onRefreshApps }) {
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Real File Upload Trigger */}
-            <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition shadow-md shadow-cyan-950">
+            <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#00ff66] to-emerald-400 hover:from-[#00ff66] hover:to-[#00f0ff] text-[#030a06] text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition shadow-md shadow-[#00ff66]/30 font-mono cursor-pointer active:scale-95">
               <Upload className="w-4 h-4" />
               <span>{isAnalyzingFile ? 'Auditing Package...' : 'Upload APK / File to Audit'}</span>
               <input 
@@ -117,9 +117,9 @@ export function AppsPage({ apps, onRefreshApps }) {
 
             <button
               onClick={() => setShowManualForm(!showManualForm)}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition"
+              className="px-3.5 py-2.5 rounded-xl bg-[#06180e] hover:bg-[#0a2817] border border-[#00ff66]/30 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition"
             >
-              <PlusCircle className="w-3.5 h-3.5 text-cyan-400" />
+              <PlusCircle className="w-3.5 h-3.5 text-[#00ff66]" />
               <span>Audit Custom App</span>
             </button>
           </div>

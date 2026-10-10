@@ -38,21 +38,21 @@ export function TopNav({
           onClick={() => onSelectTab('dashboard')} 
           className="flex items-center gap-3 cursor-pointer group"
         >
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition">
-            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-[#00ff66] to-[#00f0ff] p-0.5 shadow-lg shadow-[#00ff66]/25 group-hover:shadow-[#00ff66]/50 transition">
+            <div className="w-full h-full bg-[#030a06] rounded-[10px] flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-[#00ff66] group-hover:scale-110 transition-transform" />
             </div>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-sm sm:text-base tracking-wider text-white">
+              <span className="font-audiowide text-base sm:text-lg tracking-wider text-[#00f0ff] drop-shadow-[0_0_10px_rgba(0,240,255,0.4)]">
                 THREAT GUARD
               </span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 hidden sm:inline-block">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#072414] text-[#00ff66] border border-[#00ff66]/40 hidden sm:inline-block shadow-[0_0_8px_rgba(0,255,102,0.2)]">
                 ON-DEVICE
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 hidden sm:block tracking-tight">
+            <p className="text-[10px] text-emerald-400/70 hidden sm:block tracking-tight font-mono">
               Your Device. Your Security. Your Control.
             </p>
           </div>
@@ -62,8 +62,8 @@ export function TopNav({
       {/* Right Controls: Genuine Current Visitor Device, Notifications, Sign Out */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Dynamic Genuine Client Device Pill */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-700/50 text-[11px] font-semibold text-cyan-300">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#041a0e] border border-[#00ff66]/40 text-[11px] font-semibold text-[#00ff66] shadow-[0_0_12px_rgba(0,255,102,0.15)]">
+          <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse shadow-[0_0_8px_#00ff66]"></span>
           <span className="font-mono truncate max-w-[200px]">
             {deviceInfo?.platformName || 'Current Client Device'}
           </span>
@@ -71,8 +71,8 @@ export function TopNav({
 
         {/* User Account / Profile Badge */}
         {currentUser && (
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300">
-            <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#06140b] border border-[#00ff66]/30 text-xs text-slate-300">
+            <UserCheck className="w-3.5 h-3.5 text-[#00ff66]" />
             <span className="truncate max-w-[130px] font-mono">
               {currentUser.name || currentUser.email}
             </span>
@@ -82,12 +82,12 @@ export function TopNav({
         {/* Notifications Icon with Badge */}
         <button
           onClick={onOpenNotifications}
-          className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 border border-slate-800 transition"
+          className="relative p-2 rounded-xl text-slate-300 hover:text-[#00ff66] hover:bg-[#06180e] border border-emerald-950 transition"
           aria-label="Open notifications"
         >
           <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center border-2 border-slate-950">
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center border-2 border-black">
               {unreadCount}
             </span>
           )}
@@ -98,8 +98,8 @@ export function TopNav({
           onClick={() => onSelectTab('settings')}
           className={`p-2 rounded-xl border transition ${
             currentTab === 'settings' 
-              ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/40' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border-slate-800'
+              ? 'bg-[#00ff66]/15 text-[#00ff66] border-[#00ff66]/50 shadow-[0_0_10px_rgba(0,255,102,0.3)]' 
+              : 'text-slate-300 hover:text-[#00ff66] hover:bg-[#06180e] border-emerald-950'
           }`}
           aria-label="Settings"
         >

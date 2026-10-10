@@ -136,11 +136,11 @@ export function DashboardPage({
               className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-sm tracking-wider uppercase flex items-center justify-center gap-3 transition shadow-xl ${
                 isScanning 
                   ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-cyan-950/60 cursor-pointer active:scale-95'
+                  : 'bg-gradient-to-r from-[#00ff66] via-emerald-400 to-[#00f0ff] hover:from-[#00ff66] hover:to-[#00f0ff] text-[#030a06] shadow-[0_0_25px_rgba(0,255,102,0.4)] cursor-pointer active:scale-95 font-mono'
               }`}
             >
               <Play className={`w-5 h-5 fill-current ${isScanning ? 'animate-spin' : ''}`} />
-              <span>RUN FULL SECURITY CHECK</span>
+              <span className="font-extrabold tracking-widest">RUN FULL SECURITY CHECK</span>
             </button>
             <span className="text-[11px] text-slate-500">
               Zero cloud telemetry • 100% On-Device Analysis

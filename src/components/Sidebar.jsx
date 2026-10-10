@@ -70,11 +70,11 @@ export function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
                   w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold
                   transition-all duration-150 text-left group
                   ${isActive 
-                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/10 text-cyan-400 border border-cyan-500/30 shadow-md shadow-cyan-950/40' 
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'}
+                    ? 'bg-gradient-to-r from-[#00ff66]/20 to-[#00f0ff]/10 text-[#00ff66] border border-[#00ff66]/40 shadow-md shadow-[#00ff66]/10' 
+                    : 'text-slate-400 hover:text-white hover:bg-[#071a10] border border-transparent'}
                 `}
               >
-                <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? 'text-cyan-400 scale-110' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? 'text-[#00ff66] scale-110 drop-shadow-[0_0_8px_rgba(0,255,102,0.8)]' : 'text-slate-500 group-hover:text-emerald-400'}`} />
                 <span className="truncate">{item.label}</span>
               </button>
             );
@@ -82,9 +82,9 @@ export function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
         </div>
 
         {/* Local-First Privacy Footer */}
-        <div className="pt-4 border-t border-slate-800/80">
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px]">
-            <div className="flex items-center gap-1.5 text-cyan-400 font-bold mb-1">
+        <div className="pt-4 border-t border-emerald-950/80">
+          <div className="p-3 rounded-xl bg-[#040f09] border border-[#00ff66]/20 text-[11px] shadow-[0_0_12px_rgba(0,255,102,0.06)]">
+            <div className="flex items-center gap-1.5 text-[#00ff66] font-bold mb-1">
               <span>Client-Isolated Protection</span>
             </div>
             <p className="text-slate-400 text-[10px] leading-tight">

@@ -2,80 +2,93 @@
 
 @layer base {
   :root {
-    --color-bg-primary: #07090e;
-    --color-bg-card: rgba(14, 20, 34, 0.75);
-    --color-accent-cyan: #06b6d4;
-    --color-accent-blue: #3b82f6;
+    --color-bg-primary: #030705;
+    --color-bg-card: rgba(8, 20, 14, 0.8);
+    --color-accent-neon: #00ff66;
     --color-accent-emerald: #10b981;
+    --color-accent-cyan: #00f0ff;
     --color-accent-amber: #f59e0b;
-    --color-accent-rose: #f43f5e;
+    --color-accent-rose: #ff3366;
   }
 
   body {
     margin: 0;
     padding: 0;
-    background-color: #07090e;
+    background-color: #030705;
     color: #e2e8f0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
+
+  /* Audiowide Font Class for Futuristic Cybersecurity Branding */
+  .font-audiowide {
+    font-family: 'Audiowide', cursive, sans-serif;
+    letter-spacing: 0.08em;
+  }
 }
 
-/* Custom cyber glassmorphism & glows */
+/* Custom Cyber Hacker glassmorphism & Neon Green glows */
 .glass-panel {
-  background: rgba(13, 20, 36, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.12);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: rgba(6, 17, 12, 0.78);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 255, 102, 0.16);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+}
+
+.glass-panel:hover {
+  border-color: rgba(0, 255, 102, 0.3);
 }
 
 .glass-panel-glow {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(6, 182, 212, 0.25);
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.12), 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: rgba(6, 22, 14, 0.85);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 255, 102, 0.35);
+  box-shadow: 0 0 25px rgba(0, 255, 102, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
 .glass-panel-danger {
-  background: rgba(30, 15, 25, 0.7);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(244, 63, 94, 0.25);
-  box-shadow: 0 0 25px rgba(244, 63, 94, 0.12);
+  background: rgba(30, 8, 14, 0.8);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 51, 102, 0.35);
+  box-shadow: 0 0 25px rgba(255, 51, 102, 0.18);
 }
 
 .cyber-grid-bg {
-  background-size: 40px 40px;
+  background-size: 36px 36px;
   background-image: 
-    linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 255, 102, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 255, 102, 0.035) 1px, transparent 1px);
 }
 
-/* Custom scrollbars */
+/* Custom Cyber Hacker scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #020604;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #0d281a;
   border-radius: 9999px;
+  border: 1px solid rgba(0, 255, 102, 0.2);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0ea5e9;
+  background: #00ff66;
 }
 
 @keyframes pulseGlow {
   0%, 100% {
     opacity: 0.4;
     transform: scale(1);
+    filter: drop-shadow(0 0 4px rgba(0, 255, 102, 0.4));
   }
   50% {
-    opacity: 0.8;
-    transform: scale(1.04);
+    opacity: 0.9;
+    transform: scale(1.03);
+    filter: drop-shadow(0 0 14px rgba(0, 255, 102, 0.8));
   }
 }
 
@@ -94,4 +107,18 @@
 
 .animate-radar {
   animation: radarSweep 4s linear infinite;
+}
+
+/* Neon Green Text Glow */
+.text-neon-glow {
+  color: #00ff66;
+  text-shadow: 0 0 10px rgba(0, 255, 102, 0.6), 0 0 20px rgba(0, 255, 102, 0.3);
+}
+
+/* Audiowide Neon Brand Header */
+.brand-audiowide {
+  font-family: 'Audiowide', sans-serif;
+  letter-spacing: 0.07em;
+  color: #00f0ff;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
 }

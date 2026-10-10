@@ -211,7 +211,7 @@ export function App() {
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 cyber-grid-bg flex flex-col selection:bg-cyan-500 selection:text-black">
+    <div className="min-h-screen bg-[#030705] text-slate-100 cyber-grid-bg flex flex-col selection:bg-[#00ff66] selection:text-black">
       {/* Top Navbar */}
       <TopNav
         currentTab={currentTab}
