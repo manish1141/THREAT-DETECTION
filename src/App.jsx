@@ -233,6 +233,37 @@ export function App() {
   const handleStatusChange = (id, newStatus) => {
     threatService.updateStatus(id, newStatus);
     refreshAllState();
+
+    if (newStatus === 'RESOLVED') {
+      const updated = securityService.getDashboardState();
+      if (updated.score >= 90) {
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        } catch {}
+      }
+    }
+  };
+
+  // Resolve all threats in one click and immediately restore score to 100
+  const handleResolveAllThreats = () => {
+    const list = threatService.getThreats();
+    list.forEach(t => {
+      if (t.status === 'ACTIVE') {
+        threatService.updateStatus(t.id, 'RESOLVED');
+      }
+    });
+    refreshAllState();
+    try {
+      confetti({
+        particleCount: 140,
+        spread: 85,
+        origin: { y: 0.55 }
+      });
+    } catch {}
   };
 
   // Reset user data to baseline
@@ -283,6 +314,7 @@ export function App() {
               onNavigate={setCurrentTab}
               onInspectThreat={(t) => setSelectedThreatModal(t)}
               onResolveThreat={handleStatusChange}
+              onResolveAllThreats={handleResolveAllThreats}
               deviceInfo={deviceInfo}
               currentUser={session}
             />
@@ -319,6 +351,7 @@ export function App() {
             <ThreatCenterPage
               threats={threats}
               onStatusChange={handleStatusChange}
+              onResolveAllThreats={handleResolveAllThreats}
               onResetThreats={() => {
                 threatService.resetThreats();
                 refreshAllState();

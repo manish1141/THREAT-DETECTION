@@ -8,58 +8,115 @@ import { storageService } from './storageService';
 import { liveSecurityAuditor } from './liveSecurityAuditor';
 import { notificationService } from './notificationService';
 import { clientDeviceDetector } from './clientDeviceDetector';
+import { threatService } from './threatService';
 
 export const securityService = {
+  /**
+   * Dynamically computes the live security score and vector breakdown
+   * based on actual client environment, hardware probes, and ACTIVE threat incidents.
+   */
+  computeDynamicSecurityPosture(threatsList, cachedLive = null) {
+    const isHttps = typeof window !== 'undefined' ? window.location.protocol === 'https:' : true;
+    const hasWebCrypto = typeof window !== 'undefined' ? Boolean(window.crypto && window.crypto.subtle) : true;
+
+    const allThreats = threatsList || [];
+    const activeThreats = allThreats.filter(t => t.status === 'ACTIVE');
+    const highRiskThreats = activeThreats.filter(t => t.severity === 'HIGH' || t.severity === 'CRITICAL');
+
+    // Baseline vectors (Max 100 for each vector)
+    let appScore = hasWebCrypto ? 100 : 75;
+    let permScore = 100;
+    let networkScore = isHttps ? 100 : 60;
+    let privacyScore = 100;
+    let threatProtectionScore = 100;
+
+    // Deduct points based strictly on ACTIVE threats
+    let threatDeduction = 0;
+    activeThreats.forEach(t => {
+      if (t.severity === 'CRITICAL') threatDeduction += 25;
+      else if (t.severity === 'HIGH') threatDeduction += 15;
+      else if (t.severity === 'MEDIUM') threatDeduction += 8;
+      else threatDeduction += 4;
+    });
+
+    threatProtectionScore = Math.max(20, 100 - threatDeduction);
+
+    // If there are privacy or permission threats active
+    const permThreats = activeThreats.filter(t => 
+      t.threatType === 'Dangerous Permission Combination' || 
+      t.threatType === 'Privacy Risk' || 
+      t.category === 'PERMISSIONS'
+    );
+    if (permThreats.length > 0) {
+      permScore = Math.max(40, 100 - (permThreats.length * 15));
+      privacyScore = Math.max(40, 100 - (permThreats.length * 12));
+    }
+
+    // Dynamic overall score calculation
+    let overallScore;
+    if (activeThreats.length === 0) {
+      // WHEN ALL THREATS ARE RESOLVED: Score reaches 100!
+      overallScore = isHttps ? 100 : 92;
+      appScore = 100;
+      permScore = 100;
+      networkScore = isHttps ? 100 : 60;
+      privacyScore = 100;
+      threatProtectionScore = 100;
+    } else {
+      overallScore = Math.max(15, Math.min(98, Math.round(
+        (appScore * 0.20) +
+        (permScore * 0.20) +
+        (networkScore * 0.15) +
+        (privacyScore * 0.15) +
+        (threatProtectionScore * 0.30)
+      )));
+    }
+
+    const status = overallScore >= 90
+      ? 'DEVICE FULLY PROTECTED'
+      : overallScore >= 75
+      ? 'ACTION RECOMMENDED'
+      : 'CRITICAL ATTENTION REQUIRED';
+
+    const statusClass = overallScore >= 90
+      ? 'text-emerald-400 drop-shadow-[0_0_15px_rgba(0,255,102,0.6)]'
+      : overallScore >= 75
+      ? 'text-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]'
+      : 'text-rose-400 drop-shadow-[0_0_12px_rgba(244,63,94,0.6)]';
+
+    return {
+      score: overallScore,
+      status,
+      statusClass,
+      breakdown: {
+        applications: appScore,
+        permissions: permScore,
+        network: networkScore,
+        privacy: privacyScore,
+        threatProtection: threatProtectionScore
+      },
+      threatsCount: activeThreats.length,
+      highRiskCount: highRiskThreats.length,
+      privacyRisksCount: permThreats.length,
+      networkStatus: isHttps ? 'Secure (TLS / HTTPS)' : 'Insecure HTTP',
+      totalAppsAnalyzed: 4,
+      threats: allThreats
+    };
+  },
+
   /**
    * Retrieves live computed dashboard metrics based on the visitor's real device
    */
   getDashboardState() {
     const cachedLive = storageService.get('live_audit_cache');
     const settings = storageService.getSettings();
-    const threats = storageService.getThreatEvents();
-    const deviceInfo = clientDeviceDetector.getBrowserDeviceInfo();
-
-    if (cachedLive) {
-      return {
-        score: cachedLive.overallScore,
-        status: cachedLive.status,
-        statusClass: cachedLive.statusClass,
-        breakdown: cachedLive.breakdown,
-        threatsCount: cachedLive.threatsCount + threats.filter(t => t.status === 'ACTIVE').length,
-        highRiskCount: cachedLive.highRiskCount + threats.filter(t => t.severity === 'HIGH' && t.status === 'ACTIVE').length,
-        privacyRisksCount: cachedLive.privacyRisksCount,
-        networkStatus: cachedLive.isHttps ? 'Secure (TLS / HTTPS)' : 'Insecure HTTP',
-        totalAppsAnalyzed: cachedLive.realPermissions?.length || 4,
-        lastCheck: storageService.get('threatguard_last_check', 'Just now'),
-        isMonitoringActive: settings.autoMonitoring,
-        threats,
-        realMode: true
-      };
-    }
-
-    // Baseline calculation on first load
-    const isHttps = typeof window !== 'undefined' ? window.location.protocol === 'https:' : true;
-    const initialScore = isHttps ? 88 : 68;
+    const threats = threatService.getThreats();
+    const posture = this.computeDynamicSecurityPosture(threats, cachedLive);
 
     return {
-      score: initialScore,
-      status: initialScore >= 80 ? 'DEVICE PROTECTED' : 'ACTION RECOMMENDED',
-      statusClass: initialScore >= 80 ? 'text-emerald-400' : 'text-amber-400',
-      breakdown: {
-        applications: 92,
-        permissions: 85,
-        network: isHttps ? 95 : 55,
-        privacy: 90,
-        threatProtection: 90
-      },
-      threatsCount: threats.filter(t => t.status === 'ACTIVE').length,
-      highRiskCount: 0,
-      privacyRisksCount: 0,
-      networkStatus: isHttps ? 'Secure (TLS / HTTPS)' : 'Insecure HTTP',
-      totalAppsAnalyzed: 4,
-      lastCheck: 'Never scanned yet',
+      ...posture,
+      lastCheck: storageService.get('threatguard_last_check', 'Just now'),
       isMonitoringActive: settings.autoMonitoring,
-      threats,
       realMode: true
     };
   },
@@ -79,7 +136,7 @@ export const securityService = {
 
     for (const item of steps) {
       if (onProgress) onProgress(item);
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, 350));
     }
 
     // Run real live client audit
@@ -92,12 +149,15 @@ export const securityService = {
 
     storageService.set('threatguard_last_check', `Today, ${timeFormatted}`);
 
+    const threats = threatService.getThreats();
+    const dynamicPosture = this.computeDynamicSecurityPosture(threats, liveAudit);
+
     // Store record in user's isolated scan history
     storageService.addScanRecord({
       scanType: 'Live Endpoint Security Audit',
-      threatsFound: liveAudit.threatsCount,
-      securityScore: liveAudit.overallScore,
-      status: liveAudit.status,
+      threatsFound: dynamicPosture.threatsCount,
+      securityScore: dynamicPosture.score,
+      status: dynamicPosture.status,
       date: dateFormatted,
       time: timeFormatted,
       summary: `Live audit of browser permissions, TLS transport, and Web Crypto APIs.`
@@ -106,11 +166,11 @@ export const securityService = {
     // Notify user
     notificationService.addNotification({
       title: 'LIVE SCAN COMPLETED',
-      message: `Genuine client audit finished. Score: ${liveAudit.overallScore}/100 (${liveAudit.status}).`,
-      type: liveAudit.threatsCount > 0 ? 'MEDIUM' : 'INFO',
+      message: `Genuine client audit finished. Score: ${dynamicPosture.score}/100 (${dynamicPosture.status}).`,
+      type: dynamicPosture.threatsCount > 0 ? 'MEDIUM' : 'INFO',
       route: 'dashboard'
     });
 
-    return liveAudit;
+    return dynamicPosture;
   }
 };

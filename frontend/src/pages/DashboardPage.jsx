@@ -31,6 +31,7 @@ export function DashboardPage({
   onNavigate, 
   onInspectThreat, 
   onResolveThreat,
+  onResolveAllThreats,
   deviceInfo,
   currentUser
 }) {
@@ -278,27 +279,42 @@ export function DashboardPage({
 
       {/* Immediate Attention Items */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
               Immediate Attention Items
             </h3>
-            <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-rose-950/80 text-rose-400 border border-rose-800">
+            <span className={`text-xs font-mono px-2 py-0.5 rounded-full border ${
+              activeThreats.length > 0 
+                ? 'bg-rose-950/80 text-rose-400 border-rose-800' 
+                : 'bg-emerald-950/80 text-emerald-400 border-emerald-800'
+            }`}>
               {activeThreats.length} Active
             </span>
           </div>
-          <button
-            onClick={() => onNavigate('threatCenter')}
-            className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1"
-          >
-            <span>View All Incidents</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center gap-3">
+            {activeThreats.length > 0 && onResolveAllThreats && (
+              <button
+                onClick={onResolveAllThreats}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 via-[#00ff66]/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-[#00ff66]/30 text-[#00ff66] border border-[#00ff66]/50 text-xs font-mono font-bold flex items-center gap-1.5 transition active:scale-95 shadow-[0_0_15px_rgba(0,255,102,0.25)] cursor-pointer"
+              >
+                <span>⚡ Resolve All (Restore Score to 100)</span>
+              </button>
+            )}
+            <button
+              onClick={() => onNavigate('threatCenter')}
+              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1"
+            >
+              <span>View All Incidents</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {activeThreats.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeThreats.slice(0, 2).map((threat) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {activeThreats.map((threat) => (
               <ThreatCard
                 key={threat.id}
                 threat={threat}
@@ -308,11 +324,15 @@ export function DashboardPage({
             ))}
           </div>
         ) : (
-          <div className="p-8 rounded-2xl glass-panel text-center border-emerald-500/20">
-            <ShieldCheck className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-            <h4 className="text-sm font-bold text-white">No Active Threats Detected</h4>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              All tested applications and permission vectors comply with baseline heuristic security policies.
+          <div className="p-8 rounded-2xl glass-panel text-center border-emerald-500/30 bg-emerald-950/15 shadow-[0_0_30px_rgba(0,255,102,0.1)]">
+            <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center mx-auto mb-3 text-emerald-400 shadow-[0_0_20px_rgba(0,255,102,0.3)]">
+              <ShieldCheck className="w-8 h-8" />
+            </div>
+            <h4 className="text-base font-black text-white font-mono tracking-wide">
+              100/100 SYSTEM INTEGRITY PERFECT
+            </h4>
+            <p className="text-xs text-emerald-300/90 mt-1 max-w-md mx-auto">
+              All identified security threats have been resolved. Real-time on-device heuristics report zero active compromise vectors.
             </p>
           </div>
         )}

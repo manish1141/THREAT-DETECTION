@@ -11,7 +11,7 @@ import {
 import { ThreatCard } from '../components/ThreatCard';
 import { ThreatDetailsModal } from '../components/ThreatDetailsModal';
 
-export function ThreatCenterPage({ threats, onStatusChange, onResetThreats }) {
+export function ThreatCenterPage({ threats, onStatusChange, onResetThreats, onResolveAllThreats }) {
   const [filter, setFilter] = useState('ALL');
   const [search, setSearch] = useState('');
   const [selectedThreat, setSelectedThreat] = useState(null);
@@ -57,13 +57,23 @@ export function ThreatCenterPage({ threats, onStatusChange, onResetThreats }) {
             </p>
           </div>
 
-          <button
-            onClick={onResetThreats}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Demo Incidents</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {onResolveAllThreats && threats.some(t => t.status === 'ACTIVE') && (
+              <button
+                onClick={onResolveAllThreats}
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500/20 via-[#00ff66]/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-[#00ff66]/30 border border-[#00ff66]/50 text-xs font-mono font-bold text-[#00ff66] flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(0,255,102,0.25)] active:scale-95 cursor-pointer"
+              >
+                <span>⚡ Resolve All Incidents (Set 100/100)</span>
+              </button>
+            )}
+            <button
+              onClick={onResetThreats}
+              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Demo Incidents</span>
+            </button>
+          </div>
         </div>
 
         {/* Filter controls (Requirement #10) */}

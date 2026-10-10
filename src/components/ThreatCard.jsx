@@ -70,20 +70,28 @@ export function ThreatCard({ threat, onSelect, onStatusChange }) {
           Target: <span className="text-slate-200 font-mono">{(threat.affectedItem || threat.text || 'Device').substring(0, 25)}</span>
         </div>
         <div className="flex items-center gap-2">
-          {threat.status === 'ACTIVE' && onStatusChange && (
+          {threat.status === 'ACTIVE' && onStatusChange ? (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onStatusChange(threat.id, 'RESOLVED');
               }}
-              className="text-emerald-400 hover:text-emerald-300 px-2 py-1 rounded bg-emerald-950/40 border border-emerald-800/40 hover:bg-emerald-900/60 transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 hover:text-emerald-300 border border-emerald-500/50 hover:border-emerald-400 font-mono text-xs font-bold transition shadow-[0_0_12px_rgba(0,255,102,0.2)] active:scale-95 cursor-pointer"
+              title="Resolve threat and restore security score"
             >
-              Resolve
+              <span>⚡ Resolve</span>
+              <span className="text-[10px] text-emerald-300 font-semibold">
+                (+{threat.severity === 'CRITICAL' ? '25' : threat.severity === 'HIGH' ? '15' : threat.severity === 'MEDIUM' ? '8' : '4'})
+              </span>
             </button>
+          ) : (
+            <span className="text-[11px] font-mono text-emerald-400/90 flex items-center gap-1 bg-emerald-950/40 px-2 py-1 rounded border border-emerald-800/40">
+              ✓ Resolved (+Score)
+            </span>
           )}
           <button
             onClick={() => onSelect && onSelect(threat)}
-            className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-semibold transition"
+            className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-semibold transition px-2 py-1 rounded hover:bg-cyan-950/30"
           >
             <span>Details</span>
             <ArrowRight className="w-3.5 h-3.5" />
