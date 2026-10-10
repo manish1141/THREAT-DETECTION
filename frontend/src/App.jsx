@@ -25,7 +25,9 @@ import { UrgentThreatModal } from './components/UrgentThreatModal';
 import { DynamicMessageScannerModal } from './components/DynamicMessageScannerModal';
 import { ThreatRemediationModal } from './components/ThreatRemediationModal';
 import { SecurityCertificateModal } from './components/SecurityCertificateModal';
+import { JuryPitchModal } from './components/JuryPitchModal';
 import { i18nService } from './services/i18nService';
+import { audioService } from './services/audioService';
 
 // Pages
 import { DashboardPage } from './pages/DashboardPage';
@@ -51,6 +53,8 @@ export function App() {
   const [remediationJob, setRemediationJob] = useState(null);
   const [currentLanguage, setCurrentLanguage] = useState(() => i18nService.getLanguage());
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  const [isJuryPitchOpen, setIsJuryPitchOpen] = useState(false);
+  const [isSoundOn, setIsSoundOn] = useState(() => audioService.isSoundEnabled());
 
   // Authentication & Session
   const [session, setSession] = useState(() => authService.getCurrentSession());
@@ -267,6 +271,7 @@ export function App() {
     refreshAllState();
 
     try {
+      audioService.playResolutionChime();
       confetti({
         particleCount: 150,
         spread: 85,
@@ -282,8 +287,18 @@ export function App() {
     i18nService.setLanguage(next);
   };
 
+  // Toggle Cyber SFX Sound Handler
+  const handleToggleSound = () => {
+    const next = audioService.toggleSound();
+    setIsSoundOn(next);
+    if (next) {
+      audioService.playClickBlip();
+    }
+  };
+
   // Attack Simulator: Threat injection handler
   const handleSimulateThreat = (threatData) => {
+    audioService.playWarningAlarm();
     threatService.addThreat(threatData);
     refreshAllState();
     notificationService.addNotification({
@@ -296,6 +311,7 @@ export function App() {
 
   // Attack Simulator: Scam message injection handler
   const handleSimulateScamMessage = (scamData) => {
+    audioService.playWarningAlarm();
     setDynamicMessageJob(scamData);
     threatService.addThreat({
       title: `Interception Alert: ${scamData.category}`,
@@ -335,6 +351,9 @@ export function App() {
         currentUser={session}
         currentLanguage={currentLanguage}
         onToggleLanguage={handleToggleLanguage}
+        onOpenJuryPitch={() => setIsJuryPitchOpen(true)}
+        isSoundOn={isSoundOn}
+        onToggleSound={handleToggleSound}
       />
 
       {/* Main Layout Container */}
@@ -538,6 +557,14 @@ export function App() {
           deviceInfo={deviceInfo}
           currentUser={session}
           score={dashboardData.score}
+        />
+      )}
+
+      {/* Jury Technical Pitch & Architecture Dossier Modal */}
+      {isJuryPitchOpen && (
+        <JuryPitchModal
+          onClose={() => setIsJuryPitchOpen(false)}
+          currentLanguage={currentLanguage}
         />
       )}
     </div>

@@ -22,7 +22,10 @@ export function TopNav({
   onSignOut,
   currentUser,
   currentLanguage = 'en',
-  onToggleLanguage
+  onToggleLanguage,
+  onOpenJuryPitch,
+  isSoundOn = true,
+  onToggleSound
 }) {
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 px-4 lg:px-8 py-3 flex items-center justify-between">
@@ -61,14 +64,42 @@ export function TopNav({
         </div>
       </div>
 
-      {/* Right Controls: Offline Badge, Language Toggle, Device Pill, Notifications, Sign Out */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      {/* Right Controls: Offline Badge, Jury Pitch, Sound, Language Toggle, Device Pill, Notifications */}
+      <div className="flex items-center gap-1.5 sm:gap-2.5">
         
         {/* Zero-Telemetry Offline Guarantee Badge */}
         <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-[10px] font-mono font-bold text-emerald-300 shadow-[0_0_10px_rgba(0,255,102,0.1)]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-ping" />
-          <span>100% OFFLINE CAPABLE • 0 TELEMETRY</span>
+          <span>100% OFFLINE • ZERO CLOUD</span>
         </div>
+
+        {/* Jury Technical Pitch Dossier Button */}
+        {onOpenJuryPitch && (
+          <button
+            onClick={onOpenJuryPitch}
+            className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:border-cyan-400 border border-cyan-500/40 text-[11px] font-mono font-bold text-cyan-300 transition flex items-center gap-1.5 active:scale-95 shadow-[0_0_10px_rgba(0,240,255,0.2)] cursor-pointer"
+            title="Jury Technical Pitch & Architecture Dossier (હેકાથોન ડેમો)"
+          >
+            <span>🎓</span>
+            <span className="hidden sm:inline">{currentLanguage === 'gu' ? 'જૂરી પીચ ડેક' : 'Jury Pitch & Tech'}</span>
+          </button>
+        )}
+
+        {/* Cyber SFX Sound Toggle */}
+        {onToggleSound && (
+          <button
+            onClick={onToggleSound}
+            className={`p-1.5 sm:px-2.5 sm:py-1 rounded-xl border text-[11px] font-mono font-bold transition flex items-center gap-1 active:scale-95 cursor-pointer ${
+              isSoundOn 
+                ? 'bg-emerald-950/60 text-[#00ff66] border-emerald-500/40 shadow-[0_0_8px_rgba(0,255,102,0.2)]'
+                : 'bg-slate-900/60 text-slate-500 border-slate-800'
+            }`}
+            title={isSoundOn ? 'Cyber SFX: Enabled' : 'Cyber SFX: Muted'}
+          >
+            <span>{isSoundOn ? '🔊' : '🔇'}</span>
+            <span className="hidden lg:inline">{isSoundOn ? 'SFX ON' : 'MUTED'}</span>
+          </button>
+        )}
 
         {/* Gujarati / English Interactive Language Switcher */}
         {onToggleLanguage && (
