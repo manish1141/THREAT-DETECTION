@@ -127,14 +127,22 @@ export function App() {
     // Global Paste Listener: When user pastes text anywhere in browser, immediately audit for scams
     const handlePaste = (e) => {
       const pastedText = e.clipboardData?.getData('text');
-      if (pastedText && pastedText.length > 15 && pastedText.length < 3000) {
-        liveMessageSentinel.processIncomingMessage(pastedText, 'Pasted Text');
+      if (pastedText && pastedText.length > 10 && pastedText.length < 3500) {
+        liveMessageSentinel.processIncomingMessage(pastedText, 'Clipboard Paste');
+      }
+    };
+
+    // Window Focus Listener: When user copies a message in WhatsApp / SMS and clicks back onto our web app, auto-check
+    const handleWindowFocus = () => {
+      if (liveMessageSentinel.isListening) {
+        liveMessageSentinel.checkClipboardNow('Window Return Intercept');
       }
     };
 
     window.addEventListener('dragover', handleDragOver);
     window.addEventListener('drop', handleDrop);
     window.addEventListener('paste', handlePaste);
+    window.addEventListener('focus', handleWindowFocus);
 
     return () => {
       unsubscribeFile();
@@ -142,6 +150,7 @@ export function App() {
       window.removeEventListener('dragover', handleDragOver);
       window.removeEventListener('drop', handleDrop);
       window.removeEventListener('paste', handlePaste);
+      window.removeEventListener('focus', handleWindowFocus);
     };
   }, []);
 

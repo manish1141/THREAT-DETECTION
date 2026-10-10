@@ -18,12 +18,16 @@ import { liveMessageSentinel } from '../services/liveMessageSentinel';
 
 export const SAMPLE_MESSAGES = [
   {
-    title: 'Bank KYC / PAN Suspension Scam (CRITICAL)',
-    text: 'Dear customer, your bank account will be blocked within 24 hours due to pending KYC verification. Click here immediately to update PAN: http://192.168.1.100/sbi-kyc-pan-update.php'
+    title: 'WhatsApp "Work From Home / Daily ₹3000" Job Scam (CRITICAL)',
+    text: 'Hello! I am HR from Global Marketing. We have a part-time work from home job. Just like YouTube videos & earn 2000-5000 daily. Contact our manager on Telegram task: https://t.me/earn-daily-bonus'
   },
   {
-    title: 'Lottery / Prize Claim Scam (HIGH RISK)',
-    text: 'CONGRATULATIONS! You have won $50,000 in the International Rewards draw. Share your OTP code to claim reward: https://bit.ly/claim-free-iphone-2026'
+    title: 'WhatsApp / SMS Electricity Bill Power Cut Scam (HIGH RISK)',
+    text: 'Dear consumer, your electricity power will be disconnected tonight at 9:30 PM because your previous month bill was unpaid. Immediately call our electricity officer at 9876543210: http://bit.ly/pay-bill-bijli'
+  },
+  {
+    title: 'Bank KYC / PAN Suspension Scam (CRITICAL)',
+    text: 'Dear customer, your bank account will be blocked within 24 hours due to pending KYC verification. Click here immediately to update PAN: http://192.168.1.100/sbi-kyc-pan-update.php'
   },
   {
     title: 'Legitimate Two-Factor Code (SAFE)',
@@ -216,18 +220,39 @@ export function MessageScannerPage() {
             <span className="text-[11px] text-slate-500 font-mono">
               Analyzed 100% locally on-device • Message is never sent to any server
             </span>
-            <button
-              onClick={() => analyzeMessage()}
-              disabled={isScanning || !inputText.trim()}
-              className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition font-mono ${
-                !inputText.trim() || isScanning
-                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-[#00ff66] to-emerald-400 hover:from-[#00ff66] hover:to-[#00f0ff] text-[#030a06] shadow-md shadow-[#00ff66]/20 active:scale-95'
-              }`}
-            >
-              <Search className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-              <span>{isScanning ? 'AUDITING LEXICON...' : 'Scan Message Risk'}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    if (text && text.trim()) {
+                      setInputText(text);
+                      analyzeMessage(text);
+                    }
+                  } catch (err) {
+                    setLiveFeedback('Please grant clipboard permission or paste with Ctrl+V');
+                  }
+                }}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition font-mono bg-[#051c0f] hover:bg-[#072815] text-[#00ff66] border border-[#00ff66]/30 active:scale-95"
+              >
+                <ClipboardCheck className="w-4 h-4" />
+                <span>Paste & Scan</span>
+              </button>
+
+              <button
+                onClick={() => analyzeMessage()}
+                disabled={isScanning || !inputText.trim()}
+                className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition font-mono ${
+                  !inputText.trim() || isScanning
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-[#00ff66] to-emerald-400 hover:from-[#00ff66] hover:to-[#00f0ff] text-[#030a06] shadow-md shadow-[#00ff66]/20 active:scale-95'
+                }`}
+              >
+                <Search className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
+                <span>{isScanning ? 'AUDITING LEXICON...' : 'Scan Message Risk'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
