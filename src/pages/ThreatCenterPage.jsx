@@ -17,10 +17,15 @@ export function ThreatCenterPage({ threats, onStatusChange, onResetThreats }) {
   const [selectedThreat, setSelectedThreat] = useState(null);
 
   const filtered = threats.filter(t => {
+    if (!t) return false;
+    const nameStr = (t.name || t.title || '').toLowerCase();
+    const itemStr = (t.affectedItem || t.fileName || t.text || '').toLowerCase();
+    const idStr = (t.id || '').toLowerCase();
+
     const matchesSearch = 
-      t.name.toLowerCase().includes(search.toLowerCase()) || 
-      t.affectedItem.toLowerCase().includes(search.toLowerCase()) ||
-      t.id.toLowerCase().includes(search.toLowerCase());
+      nameStr.includes(search.toLowerCase()) || 
+      itemStr.includes(search.toLowerCase()) ||
+      idStr.includes(search.toLowerCase());
 
     if (!matchesSearch) return false;
 

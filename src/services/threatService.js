@@ -76,6 +76,14 @@ export const threatService = {
       id: 'THR-' + Math.floor(1000 + Math.random() * 9000),
       detectedTime: 'Just now',
       status: 'ACTIVE',
+      name: threat.title || threat.name || 'Detected Threat Incident',
+      threatType: threat.category || threat.threatType || 'Security Vector',
+      severity: threat.severity || 'HIGH',
+      riskScore: threat.riskScore || 85,
+      affectedItem: threat.affectedItem || threat.text?.substring(0, 40) || threat.fileName || 'Client Device Context',
+      riskExplanation: threat.description || threat.riskExplanation || threat.evidence || 'Threat indicators exceeded safety heuristic baseline.',
+      possibleImpact: threat.possibleImpact || 'Potential unauthorized credential access or fraudulent diversion.',
+      recommendedAction: threat.remediation || threat.recommendedAction || 'Quarantine and do not interact with the vector.',
       ...threat
     };
     const updated = [newThreat, ...list];

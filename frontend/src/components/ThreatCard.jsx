@@ -58,16 +58,16 @@ export function ThreatCard({ threat, onSelect, onStatusChange }) {
       </div>
 
       <h4 className="text-base font-bold text-white mb-1.5 group-hover:text-cyan-300 transition-colors">
-        {threat.name}
+        {threat.name || threat.title || 'Security Threat'}
       </h4>
 
       <p className="text-xs text-slate-400 line-clamp-2 mb-3">
-        {threat.riskExplanation}
+        {threat.riskExplanation || threat.description || 'Elevated risk detected on device.'}
       </p>
 
       <div className="flex items-center justify-between pt-3 border-t border-slate-800/80 text-xs">
         <div className="text-slate-400">
-          Target: <span className="text-slate-200 font-mono">{threat.affectedItem?.split(' ')[0]}</span>
+          Target: <span className="text-slate-200 font-mono">{(threat.affectedItem || threat.text || 'Device').substring(0, 25)}</span>
         </div>
         <div className="flex items-center gap-2">
           {threat.status === 'ACTIVE' && onStatusChange && (
